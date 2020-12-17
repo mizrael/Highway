@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
@@ -79,12 +80,12 @@ namespace Highway.Persistence.InMemory.Tests
         }
     }
 
-    internal record DummyEvent(Guid Id) : IMessage
+    public record DummyEvent(Guid Id) : IMessage
     {
         public Guid GetCorrelationId() => this.Id;
     }
 
-    internal record DummyCommand(Guid Id) : ICommand
+    public record DummyCommand(Guid Id) : ICommand
     {
         public Guid GetCorrelationId() => this.Id;
     }

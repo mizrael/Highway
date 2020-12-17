@@ -24,8 +24,7 @@ namespace Highway.Core.DependencyInjection
             if (messageType.IsAssignableTo(typeof(ICommand)) && Services.Any(sd => sd.ServiceType == typeof(IHandleMessage<TM>)))
                 throw new TypeLoadException(
                     $"there is already one handler registered for command type '{messageType.FullName}'");
-            
-            
+
             Services.AddScoped<IHandleMessage<TM>, TC>();
             return this;
         }
