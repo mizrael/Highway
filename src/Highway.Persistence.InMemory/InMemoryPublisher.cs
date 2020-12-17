@@ -41,6 +41,9 @@ namespace Highway.Persistence.InMemory
                     exceptions.Add(e);
                 }
             }
+
+            if (null != exceptions && exceptions.Any())
+                throw new AggregateException(exceptions);
         }
 
         public Task SendAsync<TM>(TM command, CancellationToken cancellationToken = default) where TM : IMessage
