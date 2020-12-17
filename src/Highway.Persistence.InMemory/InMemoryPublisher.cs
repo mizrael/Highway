@@ -24,7 +24,7 @@ namespace Highway.Persistence.InMemory
         {
             var consumers = _serviceProvider.GetServices<IHandleMessage<TM>>();
             if (null == consumers || !consumers.Any())
-                throw new ConsumersNotFoundException(typeof(TM));
+                throw new ConsumerNotFoundException(typeof(TM));
 
             IList<Exception> exceptions = null;
             
@@ -46,9 +46,14 @@ namespace Highway.Persistence.InMemory
                 throw new AggregateException(exceptions);
         }
 
-        public Task SendAsync<TM>(TM command, CancellationToken cancellationToken = default) where TM : IMessage
+        public async Task SendAsync<TC>(TC command, CancellationToken cancellationToken = default) where TC : ICommand
         {
-            return Task.CompletedTask;
+            var context = _messageContextFactory.Create(command);
+            var consumer = _serviceProvider.GetService<IHandleMessage<TC>>();
+            if(null == consumer)
+                throw new ConsumerNotFoundException(typeof(TC));
+
+            await consumer.HandleAsync(context, cancellationToken);
         }
     }
 }

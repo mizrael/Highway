@@ -26,8 +26,6 @@ namespace Highway.Persistence.InMemory.Tests
             var sp = NSubstitute.Substitute.For<IServiceProvider>();
             sp.GetService(typeof(IEnumerable<IHandleMessage<DummyEvent>>))
                 .Returns(consumers);
-            sp.GetServices<IHandleMessage<DummyEvent>>()
-                .Returns(consumers);
             var messageContextFactory = NSubstitute.Substitute.For<IMessageContextFactory>();
 
             var sut = new InMemoryPublisher(sp, messageContextFactory);
@@ -50,13 +48,45 @@ namespace Highway.Persistence.InMemory.Tests
 
             var sut = new InMemoryPublisher(sp, messageContextFactory);
 
-            await Assert.ThrowsAsync<ConsumersNotFoundException>(async () =>
+            await Assert.ThrowsAsync<ConsumerNotFoundException>(async () =>
                 await sut.PublishAsync(@event)
             );
+        }
+
+        [Fact]
+        public async Task Send_should_send_command_only_to_one_consumer()
+        {
+            var @event = new DummyCommand(Guid.NewGuid());
+
+            var consumer = NSubstitute.Substitute.For<IHandleMessage<DummyCommand>>();
+            var invalidConsumers = Enumerable.Repeat(1, 5)
+                .Select(i => NSubstitute.Substitute.For<IHandleMessage<DummyCommand>>())
+                .ToArray();
+
+            var sp = NSubstitute.Substitute.For<IServiceProvider>();
+            sp.GetService(typeof(IEnumerable<IHandleMessage<DummyCommand>>))
+                .Returns(invalidConsumers);
+            sp.GetService(typeof(IHandleMessage<DummyCommand>))
+                .Returns(consumer);
+            var messageContextFactory = NSubstitute.Substitute.For<IMessageContextFactory>();
+
+            var sut = new InMemoryPublisher(sp, messageContextFactory);
+
+            await sut.SendAsync(@event);
+
+            foreach (var c in invalidConsumers)
+                await c.Received(0).HandleAsync(Arg.Any<IMessageContext<DummyCommand>>(), Arg.Any<CancellationToken>());
+
+            await consumer.Received(1).HandleAsync(Arg.Any<IMessageContext<DummyCommand>>(), Arg.Any<CancellationToken>());
         }
     }
 
     public record DummyEvent(Guid Id) : IMessage
+    {
+        public Guid GetCorrelationId() => this.Id;
+    }
+
+    public record DummyCommand(Guid Id) : ICommand
     {
         public Guid GetCorrelationId() => this.Id;
     }

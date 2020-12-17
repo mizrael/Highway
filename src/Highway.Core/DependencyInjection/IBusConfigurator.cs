@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Highway.Core.DependencyInjection
 {
@@ -27,11 +28,11 @@ namespace Highway.Core.DependencyInjection
             _typeResolver = typeResolver ?? throw new ArgumentNullException(nameof(typeResolver));
         }
 
-        public IBusConfigurator AddConsumer<TC, TM>() 
-            where TC : class, IHandleMessage<TM> 
+        public IBusConfigurator AddConsumer<TC, TM>()
+            where TC : class, IHandleMessage<TM>
             where TM : IMessage
         {
-            Services.AddScoped< IHandleMessage<TM>, TC>();
+            Services.AddScoped<IHandleMessage<TM>, TC>();
             return this;
         }
 
