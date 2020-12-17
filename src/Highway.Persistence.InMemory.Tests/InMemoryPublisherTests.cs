@@ -45,7 +45,7 @@ namespace Highway.Persistence.InMemory.Tests
 
             var sp = NSubstitute.Substitute.For<IServiceProvider>();
             sp.GetService(typeof(IEnumerable<IHandleMessage<DummyEvent>>))
-                .Returns(null);
+                .Returns(Enumerable.Empty<IHandleMessage<DummyEvent>>());
             var messageContextFactory = NSubstitute.Substitute.For<IMessageContextFactory>();
 
             var sut = new InMemoryPublisher(sp, messageContextFactory);
