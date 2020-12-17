@@ -80,7 +80,7 @@ namespace Highway.Persistence.InMemory.Tests
         }
     }
 
-    public record DummyEvent(Guid Id) : IMessage
+    public record DummyEvent(Guid Id) : IEvent
     {
         public Guid GetCorrelationId() => this.Id;
     }

@@ -44,7 +44,7 @@ namespace Highway.Core.Tests
             });
 
             var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>(publisher);
-            saga.WhenForAnyArgs(s => s.HandleAsync(Arg.Any<IMessageContext<DummySagaStarter>>(), Arg.Any<CancellationToken>()))
+            saga.WhenForAnyArgs(s => s.HandleAsync(Arg.Any<IMessageContext<StartDummySaga>>(), Arg.Any<CancellationToken>()))
                 .DoNotCallBase();
             saga.WhenForAnyArgs(s => s.HandleAsync(Arg.Any<IMessageContext<DummySagaStarted>>(), Arg.Any<CancellationToken>()))
                 .DoNotCallBase();
@@ -58,10 +58,10 @@ namespace Highway.Core.Tests
 
             var sut = CreateSut(services);
 
-            var message = new DummySagaStarter(Guid.NewGuid());
+            var message = new StartDummySaga(Guid.NewGuid());
             await sut.ProcessAsync(message, CancellationToken.None);
 
-            await saga.Received(1).HandleAsync(Arg.Any<IMessageContext<DummySagaStarter>>(), Arg.Any<CancellationToken>());
+            await saga.Received(1).HandleAsync(Arg.Any<IMessageContext<StartDummySaga>>(), Arg.Any<CancellationToken>());
             await saga.Received(0).HandleAsync(Arg.Any<IMessageContext<DummySagaStarted>>(), Arg.Any<CancellationToken>());
         }
 
@@ -80,7 +80,7 @@ namespace Highway.Core.Tests
             });
 
             var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>(publisher);
-            saga.WhenForAnyArgs(s => s.HandleAsync(Arg.Any<IMessageContext<DummySagaStarter>>(), Arg.Any<CancellationToken>()))
+            saga.WhenForAnyArgs(s => s.HandleAsync(Arg.Any<IMessageContext<StartDummySaga>>(), Arg.Any<CancellationToken>()))
                 .DoNotCallBase();
 
             var sagaFactory = NSubstitute.Substitute.For<ISagaFactory<DummySaga, DummySagaState>>();
@@ -95,7 +95,7 @@ namespace Highway.Core.Tests
 
             var sut = CreateSut(services);
 
-            var message = new DummySagaStarter(Guid.NewGuid());
+            var message = new StartDummySaga(Guid.NewGuid());
             await sut.ProcessAsync(message, CancellationToken.None);
 
             await stateRepo.Received(1)

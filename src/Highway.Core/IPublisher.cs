@@ -5,7 +5,7 @@ namespace Highway.Core
 {
     public interface IPublisher
     {
-        Task PublishAsync<TM>(TM @event, CancellationToken cancellationToken = default) where TM : IMessage;
+        Task PublishAsync<TE>(TE @event, CancellationToken cancellationToken = default) where TE : IEvent;
         Task SendAsync<TC>(TC command, CancellationToken cancellationToken = default) where TC : ICommand;
     }
 }

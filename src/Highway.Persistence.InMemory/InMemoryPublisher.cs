@@ -22,11 +22,11 @@ namespace Highway.Persistence.InMemory
             _messageContextFactory = messageContextFactory ?? throw new ArgumentNullException(nameof(messageContextFactory));
         }
 
-        public async Task PublishAsync<TM>(TM @event, CancellationToken cancellationToken = default) where TM : IMessage
+        public async Task PublishAsync<TE>(TE @event, CancellationToken cancellationToken = default) where TE : IEvent
         {
-            var consumers = _serviceProvider.GetServices<IHandleMessage<TM>>();
+            var consumers = _serviceProvider.GetServices<IHandleMessage<TE>>();
             if (null == consumers || !consumers.Any())
-                throw new ConsumerNotFoundException(typeof(TM));
+                throw new ConsumerNotFoundException(typeof(TE));
 
             IList<Exception> exceptions = null;
             

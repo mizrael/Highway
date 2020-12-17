@@ -9,19 +9,19 @@ namespace Highway.Core.Tests
         public static DummySagaState Empty() => new DummySagaState(Guid.Empty);
     }
 
-    public record DummySagaStarter(Guid Id) : IMessage
+    public record StartDummySaga(Guid Id) : ICommand
     {
         public Guid GetCorrelationId() => this.Id;
     }
 
-    public record DummySagaStarted(Guid Id) : IMessage
+    public record DummySagaStarted(Guid Id) : IEvent
     {
         public Guid GetCorrelationId() => this.Id;
     }
 
     public class DummySaga : 
         Saga<DummySagaState>,
-        IStartedBy<DummySagaStarter>,
+        IStartedBy<StartDummySaga>,
         IHandleMessage<DummySagaStarted>
     {
         private readonly IPublisher _publisher;
@@ -33,10 +33,10 @@ namespace Highway.Core.Tests
 
         public override Guid GetCorrelationId() => this.State.Id;
 
-        public virtual async Task HandleAsync(IMessageContext<DummySagaStarter> context, CancellationToken cancellationToken = default)
+        public virtual async Task HandleAsync(IMessageContext<StartDummySaga> context, CancellationToken cancellationToken = default)
         {
             var started = new DummySagaStarted(context.Message.Id);
-            await _publisher.PublishAsync(started);
+            await _publisher.PublishAsync(started, cancellationToken);
         }
         
         public virtual Task HandleAsync(IMessageContext<DummySagaStarted> context, CancellationToken cancellationToken = default)
