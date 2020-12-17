@@ -39,7 +39,7 @@ namespace Highway.Core.Tests
 
             services.AddHighway(cfg =>
             {
-                cfg.RegisterSaga<DummySaga, DummySagaState>()
+                cfg.AddSaga<DummySaga, DummySagaState>()
                     .UseStateFactory(DummySagaState.Empty);
             });
 
@@ -75,7 +75,7 @@ namespace Highway.Core.Tests
 
             services.AddHighway(cfg =>
             {
-                cfg.RegisterSaga<DummySaga, DummySagaState>()
+                cfg.AddSaga<DummySaga, DummySagaState>()
                     .UseStateFactory(DummySagaState.Empty);
             });
 

@@ -16,8 +16,20 @@ namespace Highway.Core.Tests
 
             services.AddHighway(cfg =>
             {
-                cfg.AddConsumer<DummyCommandConsumer, DummyCommand>();
-                Assert.Throws<TypeLoadException>(() => cfg.AddConsumer<DummyCommandConsumer, DummyCommand>());
+                cfg.AddConsumer<DummyCommandConsumer<DummyCommand>, DummyCommand>();
+                Assert.Throws<TypeLoadException>(() => cfg.AddConsumer<DummyCommandConsumer<DummyCommand>, DummyCommand>());
+            });
+        }
+
+        [Fact]
+        public void AddConsumer_should_fail_if_another_saga_handles_the_same_command()
+        {
+            var services = new ServiceCollection();
+
+            services.AddHighway(cfg =>
+            {
+                cfg.AddSaga<DummySaga, DummySagaState>();
+                Assert.Throws<TypeLoadException>(() => cfg.AddConsumer<DummyCommandConsumer<StartDummySaga>, StartDummySaga>());
             });
         }
     }
@@ -26,12 +38,14 @@ namespace Highway.Core.Tests
     {
         public Guid GetCorrelationId() => this.Id;
     }
-    
-    internal class DummyCommandConsumer : IHandleMessage<DummyCommand>
+
+    internal class DummyCommandConsumer<TC> : IHandleMessage<TC>
+        where TC : ICommand
     {
-        public Task HandleAsync(IMessageContext<DummyCommand> context, CancellationToken cancellationToken = default)
+        public Task HandleAsync(IMessageContext<TC> context, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
+    
 }
