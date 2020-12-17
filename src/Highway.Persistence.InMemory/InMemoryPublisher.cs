@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
 using Highway.Core.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 
+[assembly: InternalsVisibleTo("Highway.Persistence.InMemory.Tests")]
 namespace Highway.Persistence.InMemory
 {
-    public class InMemoryPublisher : IPublisher
+    internal class InMemoryPublisher : IPublisher
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IMessageContextFactory _messageContextFactory;

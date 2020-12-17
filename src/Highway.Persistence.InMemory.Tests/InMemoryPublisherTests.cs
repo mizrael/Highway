@@ -1,12 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
 using Highway.Core.Exceptions;
-using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Xunit;
 
@@ -81,12 +79,12 @@ namespace Highway.Persistence.InMemory.Tests
         }
     }
 
-    public record DummyEvent(Guid Id) : IMessage
+    internal record DummyEvent(Guid Id) : IMessage
     {
         public Guid GetCorrelationId() => this.Id;
     }
 
-    public record DummyCommand(Guid Id) : ICommand
+    internal record DummyCommand(Guid Id) : ICommand
     {
         public Guid GetCorrelationId() => this.Id;
     }
