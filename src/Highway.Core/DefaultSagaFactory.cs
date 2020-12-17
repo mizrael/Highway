@@ -8,7 +8,7 @@ namespace Highway.Core
         where TS : Saga<TD>
     {
         private readonly IServiceProvider _serviceProvider;
-
+        
         public DefaultSagaFactory(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));

@@ -24,12 +24,19 @@ namespace Highway.Core.Tests
         IStartedBy<DummySagaStarter>,
         IHandleMessage<DummySagaStarted>
     {
+        private readonly IPublisher _publisher;
+
+        public DummySaga(IPublisher publisher)
+        {
+            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+        }
+
         public override Guid GetCorrelationId() => this.State.Id;
 
         public virtual async Task HandleAsync(IMessageContext<DummySagaStarter> context, CancellationToken cancellationToken = default)
         {
             var started = new DummySagaStarted(context.Message.Id);
-            await context.Publisher.PublishAsync(started);
+            await _publisher.PublishAsync(started);
         }
         
         public virtual Task HandleAsync(IMessageContext<DummySagaStarted> context, CancellationToken cancellationToken = default)

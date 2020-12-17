@@ -11,18 +11,28 @@ namespace Highway.Core.DependencyInjection
             where TD : ISagaState;
 
         IServiceCollection Services { get; }
+
+        IBusConfigurator AddConsumer<TC, TM>()
+            where TM : IMessage
+            where TC : class, IHandleMessage<TM>;
     }
     
     internal class BusConfigurator : IBusConfigurator
     {
-        public IServiceCollection Services { get; }
-        
         private readonly ISagaTypeResolver _typeResolver;
 
         public BusConfigurator(IServiceCollection services, ISagaTypeResolver typeResolver)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             _typeResolver = typeResolver ?? throw new ArgumentNullException(nameof(typeResolver));
+        }
+
+        public IBusConfigurator AddConsumer<TC, TM>() 
+            where TC : class, IHandleMessage<TM> 
+            where TM : IMessage
+        {
+            Services.AddScoped< IHandleMessage<TM>, TC>();
+            return this;
         }
 
         public ISagaConfigurator<TS, TD> RegisterSaga<TS, TD>() where TS : Saga<TD> where TD : ISagaState
@@ -53,5 +63,7 @@ namespace Highway.Core.DependencyInjection
 
             return new SagaConfigurator<TS, TD>(Services);
         }
+
+        public IServiceCollection Services { get; }
     }
 }

@@ -43,7 +43,7 @@ namespace Highway.Core.Tests
                     .UseStateFactory(DummySagaState.Empty);
             });
 
-            var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>();
+            var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>(publisher);
             saga.WhenForAnyArgs(s => s.HandleAsync(Arg.Any<IMessageContext<DummySagaStarter>>(), Arg.Any<CancellationToken>()))
                 .DoNotCallBase();
             saga.WhenForAnyArgs(s => s.HandleAsync(Arg.Any<IMessageContext<DummySagaStarted>>(), Arg.Any<CancellationToken>()))
@@ -79,7 +79,7 @@ namespace Highway.Core.Tests
                     .UseStateFactory(DummySagaState.Empty);
             });
 
-            var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>();
+            var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>(publisher);
             saga.WhenForAnyArgs(s => s.HandleAsync(Arg.Any<IMessageContext<DummySagaStarter>>(), Arg.Any<CancellationToken>()))
                 .DoNotCallBase();
 
