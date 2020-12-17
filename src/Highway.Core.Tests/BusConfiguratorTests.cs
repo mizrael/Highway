@@ -32,6 +32,32 @@ namespace Highway.Core.Tests
                 Assert.Throws<TypeLoadException>(() => cfg.AddConsumer<DummyCommandConsumer<StartDummySaga>, StartDummySaga>());
             });
         }
+
+        [Fact]
+        public void AddSaga_should_fail_if_another_command_handler_handles_the_same_command()
+        {
+            var services = new ServiceCollection();
+
+            services.AddHighway(cfg =>
+            {
+                cfg.AddConsumer<DummyCommandConsumer<StartDummySaga>, StartDummySaga>();
+                
+                Assert.Throws<TypeLoadException>(() => cfg.AddSaga<DummySaga, DummySagaState>());
+            });
+        }
+
+        [Fact]
+        public void AddSaga_should_fail_if_another_saga_handles_the_same_command()
+        {
+            var services = new ServiceCollection();
+
+            services.AddHighway(cfg =>
+            {
+                cfg.AddSaga<DummySaga, DummySagaState>();
+
+                Assert.Throws<TypeLoadException>(() => cfg.AddSaga<DummySaga, DummySagaState>());
+            });
+        }
     }
 
     internal record DummyCommand(Guid Id) : ICommand

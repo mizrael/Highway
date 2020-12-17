@@ -34,30 +34,38 @@ namespace Highway.Core.DependencyInjection
         {
             var sagaType = typeof(TS);
             var sagaStateType = typeof(TD);
-            
-            var handlerType = typeof(IHandleMessage<>).GetGenericTypeDefinition();
+
+            Services.AddScoped<TS>();
+
+            var messageHandlerType = typeof(IHandleMessage<>).GetGenericTypeDefinition();
 
             var interfaces = sagaType.GetInterfaces();
             foreach(var i in interfaces)
-            {
+            {   
                 if (!i.IsGenericType) 
                     continue;
                 
                 var openGeneric = i.GetGenericTypeDefinition();
-                if (!openGeneric.IsAssignableFrom(handlerType)) 
+                if (!openGeneric.IsAssignableFrom(messageHandlerType)) 
                     continue;
                 
                 var messageType = i.GetGenericArguments().First();
+
+                if (messageType.IsAssignableTo(typeof(ICommand)))
+                {
+                    var commandHandlerType = typeof(IHandleMessage<>).MakeGenericType(messageType);
+                    if(Services.Any(sd => sd.ServiceType == commandHandlerType))
+                        throw new TypeLoadException(
+                            $"there is already one handler registered for command type '{messageType.FullName}'");
+                }
+
                 _typeResolver.Register(messageType, (sagaType, sagaStateType));
+
+                Services.AddScoped(i, sagaType);
             }
 
             Services.AddSingleton(typeof(ISagaFactory<,>).MakeGenericType(sagaType, sagaStateType),
                 typeof(DefaultSagaFactory<,>).MakeGenericType(sagaType, sagaStateType));
-
-            Services.AddScoped<TS>();
-            var sagaInterfaces = sagaType.GetInterfaces();
-            foreach(var i in interfaces )
-                Services.AddScoped(i, sagaType);
 
             return new SagaConfigurator<TS, TD>(Services);
         }
