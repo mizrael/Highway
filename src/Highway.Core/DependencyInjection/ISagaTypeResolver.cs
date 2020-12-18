@@ -5,7 +5,7 @@ namespace Highway.Core.DependencyInjection
 {
     public interface ISagaTypeResolver
     {
-        IEnumerable<(Type sagaType, Type sagaStateType)> Resolve<TM>(TM message) where TM : IMessage;
+        IEnumerable<(Type sagaType, Type sagaStateType)> Resolve<TM>() where TM : IMessage;
         void Register(Type messageType, (Type sagaType, Type sagaStateType) types);
     }
 }

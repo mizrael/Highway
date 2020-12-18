@@ -8,7 +8,7 @@ namespace Highway.Core.DependencyInjection
     {
         private readonly ConcurrentDictionary<Type, ConcurrentDictionary<Type, Type>> _types = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Type>>();
         
-        public IEnumerable<(Type sagaType, Type sagaStateType)> Resolve<TM>(TM message) where TM : IMessage
+        public IEnumerable<(Type sagaType, Type sagaStateType)> Resolve<TM>() where TM : IMessage
         {
             var messageType = typeof(TM);
 

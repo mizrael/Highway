@@ -12,7 +12,9 @@ namespace Highway.Core.DependencyInjection
 
             services.AddSingleton<ITypesCache, TypesCache>();
             services.AddSingleton<IMessageContextFactory, DefaultMessageContextFactory>();
-            
+
+            services.AddSingleton<IMessageBus, DefaultMessageBus>();
+
             var builder = new BusConfigurator(services, stateTypeResolver);
             configure?.Invoke(builder);
             
