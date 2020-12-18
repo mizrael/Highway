@@ -24,9 +24,9 @@ namespace Highway.Core.Tests
         IStartedBy<StartDummySaga>,
         IHandleMessage<DummySagaStarted>
     {
-        private readonly IPublisher _publisher;
+        private readonly IMessageBus _publisher;
 
-        public DummySaga(IPublisher publisher)
+        public DummySaga(IMessageBus publisher)
         {
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
         }
