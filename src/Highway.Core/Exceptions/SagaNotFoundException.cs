@@ -4,11 +4,8 @@ namespace Highway.Core.Exceptions
 {
     public class SagaNotFoundException : Exception
     {
-        public Type SagaType { get; }
-
-        public SagaNotFoundException(Type sagaType) : base($"unable to create Saga by type")
+        public SagaNotFoundException(string message) : base(message)
         {
-            SagaType = sagaType;
         }
     }
 }
