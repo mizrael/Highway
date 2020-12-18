@@ -1,7 +1,8 @@
 namespace Highway.Core.DependencyInjection
 {
-    public interface ISagaStateFactory<TD>
+    public interface ISagaStateFactory<out TD>
+        where TD : ISagaState
     {
-        TD Create();
+        TD Create(IMessage message);
     }
 }

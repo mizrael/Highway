@@ -29,7 +29,16 @@ namespace Highway.Core
         {
             var correlationId = messageContext.Message.GetCorrelationId();
 
-            var state = await _stateRepo.FindByCorrelationIdAsync(correlationId) ?? _sagaStateFactory.Create();
+            var state = await _stateRepo.FindByCorrelationIdAsync(correlationId);
+
+            if (null == state) //TODO: add test
+            {
+                // if state is null, means we're starting a new saga. We have to check if the current message can
+                // actually start the specified saga or not
+                if(typeof(IStartedBy<TM>).IsAssignableFrom(typeof(TS)))
+                    state = _sagaStateFactory.Create(messageContext.Message);
+            }
+                
             if (null == state)
                 throw new StateCreationException(typeof(TD), "unable to create state instance");
             

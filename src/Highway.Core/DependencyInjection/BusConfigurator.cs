@@ -64,8 +64,11 @@ namespace Highway.Core.DependencyInjection
                 Services.AddScoped(i, sagaType);
             }
 
+            Services.AddSingleton(typeof(ISagaRunner<,>).MakeGenericType(sagaType, sagaStateType),
+                                  typeof(SagaRunner<,>).MakeGenericType(sagaType, sagaStateType));
+                
             Services.AddSingleton(typeof(ISagaFactory<,>).MakeGenericType(sagaType, sagaStateType),
-                typeof(DefaultSagaFactory<,>).MakeGenericType(sagaType, sagaStateType));
+                                typeof(DefaultSagaFactory<,>).MakeGenericType(sagaType, sagaStateType));
 
             return new SagaConfigurator<TS, TD>(Services);
         }

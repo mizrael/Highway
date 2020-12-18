@@ -9,11 +9,13 @@ namespace Highway.Core.DependencyInjection
         {
             var stateTypeResolver = new SagaTypeResolver();
             services.AddSingleton<ISagaTypeResolver>(stateTypeResolver);
-
+            services.AddSingleton<ISagasRunner, SagasRunner>();
+            
             services.AddSingleton<ITypesCache, TypesCache>();
             services.AddSingleton<IMessageContextFactory, DefaultMessageContextFactory>();
 
             services.AddSingleton<IMessageBus, DefaultMessageBus>();
+            services.AddSingleton<IMessageProcessor, MessageProcessor>();
 
             var builder = new BusConfigurator(services, stateTypeResolver);
             configure?.Invoke(builder);

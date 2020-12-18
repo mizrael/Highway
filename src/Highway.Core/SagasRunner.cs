@@ -34,14 +34,14 @@ namespace Highway.Core
 
             foreach (var (sagaType, stateType) in stateTypes)
             {
-                var runnerType = _typesCache.GetGeneric(typeof(ISagaRunner<Saga<ISagaState>, ISagaState>), sagaType, stateType);
+                var runnerType = _typesCache.GetGeneric(typeof(ISagaRunner<,>), sagaType, stateType);
                 var runner = _serviceProvider.GetService(runnerType);
                 if(null == runner)
                     throw new SagaNotFoundException($"no saga registered on DI for message of type '{typeof(TM).FullName}'");
 
-                var handlerMethod = _typesCache.GetMethod(runnerType,
-                    nameof(ISagaRunner<Saga<ISagaState>, ISagaState>.RunAsync));
-                
+                var genericHandlerMethod = _typesCache.GetMethod(runnerType, nameof(ISagaRunner<Saga<ISagaState>, ISagaState>.RunAsync));
+                var handlerMethod = genericHandlerMethod.MakeGenericMethod(typeof(TM));
+
                 var t = handlerMethod.Invoke(runner, new[] { (object)messageContext, (object)cancellationToken }) as Task;
                 await t;
             }

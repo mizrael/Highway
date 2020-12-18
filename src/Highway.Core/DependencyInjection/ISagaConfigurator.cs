@@ -8,7 +8,7 @@ namespace Highway.Core.DependencyInjection
         where TD : ISagaState
     {
         IServiceCollection Services { get; }
-        ISagaConfigurator<TS, TD> UseStateFactory(Func<TD> stateFactory);  //TODO: add default when registering the saga
+        ISagaConfigurator<TS, TD> UseStateFactory(Func<IMessage, TD> stateFactory);  //TODO: add default when registering the saga
     }
 
     internal class SagaConfigurator<TS, TD> : ISagaConfigurator<TS, TD>
@@ -22,7 +22,7 @@ namespace Highway.Core.DependencyInjection
 
         public IServiceCollection Services { get; }
         
-        public ISagaConfigurator<TS, TD> UseStateFactory(Func<TD> stateFactory)
+        public ISagaConfigurator<TS, TD> UseStateFactory(Func<IMessage, TD> stateFactory)
         {
             var stateType = typeof(TD);
             var factory = new LambdaSagaStateFactory<TD>(stateFactory);

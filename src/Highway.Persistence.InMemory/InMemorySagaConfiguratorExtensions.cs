@@ -13,9 +13,9 @@ namespace Highway.Persistence.InMemory
             where TD : ISagaState
         {
             var sagaStateType = typeof(TD);
-            var intrT = typeof(ISagaStateRepository<>).MakeGenericType(sagaStateType);
-            var implT = typeof(InMemorySagaStateRepository<>).MakeGenericType(sagaStateType);
-            sagaConfigurator.Services.AddSingleton(intrT, implT);
+
+            sagaConfigurator.Services.AddSingleton(typeof(ISagaStateRepository<>).MakeGenericType(sagaStateType),
+                                                typeof(InMemorySagaStateRepository<>).MakeGenericType(sagaStateType));
 
             var sagaType = typeof(TS);
             var messageHandlerType = typeof(IHandleMessage<>).GetGenericTypeDefinition();
