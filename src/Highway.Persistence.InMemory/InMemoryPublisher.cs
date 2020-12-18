@@ -1,61 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
-using Highway.Core.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 
 [assembly: InternalsVisibleTo("Highway.Persistence.InMemory.Tests")]
 namespace Highway.Persistence.InMemory
 {
-    internal class InMemoryPublisher : IPublisher
+    internal class InMemoryPublisher<TM> : IPublisher<TM>
+        where TM : IMessage
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly IMessageContextFactory _messageContextFactory;
-        
-        public InMemoryPublisher(IServiceProvider serviceProvider, IMessageContextFactory messageContextFactory)
+
+        public InMemoryPublisher(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _messageContextFactory = messageContextFactory ?? throw new ArgumentNullException(nameof(messageContextFactory));
         }
 
-        public async Task PublishAsync<TE>(TE @event, CancellationToken cancellationToken = default) where TE : IEvent
+        public async Task PublishAsync(TM message, CancellationToken cancellationToken = default)
         {
-            var consumers = _serviceProvider.GetServices<IHandleMessage<TE>>();
-            if (null == consumers || !consumers.Any())
-                throw new ConsumerNotFoundException(typeof(TE));
-
-            IList<Exception> exceptions = null;
-            
-            var context = _messageContextFactory.Create(@event);
-            foreach (var c in consumers)
-            {
-                try
-                {
-                    await c.HandleAsync(context, cancellationToken);
-                }
-                catch (Exception e)
-                {
-                    exceptions ??= new List<Exception>();
-                    exceptions.Add(e);
-                }
-            }
-
-            if (null != exceptions && exceptions.Any())
-                throw new AggregateException(exceptions);
-        }
-
-        public async Task SendAsync<TC>(TC command, CancellationToken cancellationToken = default) where TC : ICommand
-        {
-            var context = _messageContextFactory.Create(command);
-            var consumer = _serviceProvider.GetService<IHandleMessage<TC>>();
-            if(null == consumer)
-                throw new ConsumerNotFoundException(typeof(TC));
-
-            await consumer.HandleAsync(context, cancellationToken);
+            if (message == null) 
+                throw new ArgumentNullException(nameof(message));
+            var subscriber = _serviceProvider.GetService<ISubscriber<TM>>() as InMemorySubscriber<TM>;
+            if (null == subscriber)
+                return;
+            await subscriber.ConsumeAsync(message, cancellationToken);
         }
     }
 }
