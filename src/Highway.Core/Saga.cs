@@ -1,20 +1,13 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Highway.Core
+﻿namespace Highway.Core
 {
     public abstract class Saga<TD>
-        where TD : ISagaState
+        where TD : SagaState
     {
-        public abstract Guid GetCorrelationId();
-
-        protected Task PublishAsync<TM>(TM message, CancellationToken cancellationToken = default) where TM : IMessage
+        protected void Publish<TM>(TM message) where TM : IMessage
         {
-            //TODO: outbox
+            this.State.EnqueueMessage(message);
         }
 
         public TD State { get; internal set; }
-
     }
 }

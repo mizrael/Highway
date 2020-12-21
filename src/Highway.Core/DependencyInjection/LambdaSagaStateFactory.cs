@@ -3,7 +3,7 @@ using System;
 namespace Highway.Core.DependencyInjection
 {
     internal class LambdaSagaStateFactory<TD> : ISagaStateFactory<TD>
-        where TD : ISagaState
+        where TD : SagaState
     {
         private readonly Func<IMessage, TD> _factory;
 

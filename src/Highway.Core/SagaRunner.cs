@@ -9,19 +9,22 @@ namespace Highway.Core
 {
     public class SagaRunner<TS, TD> : ISagaRunner<TS, TD>
         where TS : Saga<TD>
-        where TD : ISagaState
+        where TD : SagaState
     {
         private readonly ISagaStateFactory<TD> _sagaStateFactory;
         private readonly ISagaFactory<TS, TD> _sagaFactory;
         private readonly ISagaStateRepository<TD> _stateRepo;
-
+        private readonly IMessageBus _publisher;
+        
         public SagaRunner(ISagaFactory<TS, TD> sagaFactory,
             ISagaStateFactory<TD> sagaStateFactory,
-            ISagaStateRepository<TD> stateRepo)
+            ISagaStateRepository<TD> stateRepo, 
+            IMessageBus publisher)
         {
             _sagaFactory = sagaFactory ?? throw new ArgumentNullException(nameof(sagaFactory));
             _sagaStateFactory = sagaStateFactory ?? throw new ArgumentNullException(nameof(sagaStateFactory));
             _stateRepo = stateRepo ?? throw new ArgumentNullException(nameof(stateRepo));
+            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
         }
 
         public async Task RunAsync<TM>(IMessageContext<TM> messageContext, CancellationToken cancellationToken)
@@ -51,6 +54,10 @@ namespace Highway.Core
 
             await handler.HandleAsync(messageContext, cancellationToken);
             
+            await _stateRepo.SaveAsync(correlationId, state);
+
+            await state.ProcessOutboxAsync(_publisher, cancellationToken);
+
             await _stateRepo.SaveAsync(correlationId, state);
         }
     }

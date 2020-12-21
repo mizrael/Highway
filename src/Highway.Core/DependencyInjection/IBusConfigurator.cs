@@ -6,7 +6,7 @@ namespace Highway.Core.DependencyInjection
     {
         ISagaConfigurator<TS, TD> AddSaga<TS, TD>() 
             where TS : Saga<TD>
-            where TD : ISagaState;
+            where TD : SagaState;
 
         IServiceCollection Services { get; }
 

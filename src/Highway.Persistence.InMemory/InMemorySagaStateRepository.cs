@@ -8,7 +8,7 @@ using Highway.Core.Persistence;
 namespace Highway.Persistence.InMemory
 {
     public class InMemorySagaStateRepository<TD> : ISagaStateRepository<TD>
-        where TD : ISagaState
+        where TD : SagaState
     {
         private readonly ConcurrentDictionary<Guid, TD> _items;
 

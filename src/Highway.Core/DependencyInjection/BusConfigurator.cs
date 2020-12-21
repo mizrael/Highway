@@ -30,7 +30,7 @@ namespace Highway.Core.DependencyInjection
             return this;
         }
 
-        public ISagaConfigurator<TS, TD> AddSaga<TS, TD>() where TS : Saga<TD> where TD : ISagaState
+        public ISagaConfigurator<TS, TD> AddSaga<TS, TD>() where TS : Saga<TD> where TD : SagaState
         {
             var sagaType = typeof(TS);
             var sagaStateType = typeof(TD);
@@ -61,7 +61,7 @@ namespace Highway.Core.DependencyInjection
 
                 _typeResolver.Register(messageType, (sagaType, sagaStateType));
 
-                Services.AddScoped(i, sagaType);
+                Services.AddTransient(i, sagaType);
             }
 
             Services.AddSingleton(typeof(ISagaRunner<,>).MakeGenericType(sagaType, sagaStateType),

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Highway.Core
 {
     internal class DefaultSagaFactory<TS, TD> : ISagaFactory<TS, TD>
-        where TD : ISagaState
+        where TD : SagaState
         where TS : Saga<TD>
     {
         private readonly IServiceProvider _serviceProvider;

@@ -10,7 +10,7 @@ namespace Highway.Persistence.InMemory
     {
         public static ISagaConfigurator<TS, TD> PersistInMemory<TS, TD>(this ISagaConfigurator<TS, TD> sagaConfigurator)
             where TS : Saga<TD>
-            where TD : ISagaState
+            where TD : SagaState
         {
             var sagaStateType = typeof(TD);
 

@@ -5,7 +5,7 @@ namespace Highway.Core.DependencyInjection
 {
     public interface ISagaConfigurator<TS, in TD>
         where TS : Saga<TD> 
-        where TD : ISagaState
+        where TD : SagaState
     {
         IServiceCollection Services { get; }
         ISagaConfigurator<TS, TD> UseStateFactory(Func<IMessage, TD> stateFactory);  //TODO: add default when registering the saga
@@ -13,7 +13,7 @@ namespace Highway.Core.DependencyInjection
 
     internal class SagaConfigurator<TS, TD> : ISagaConfigurator<TS, TD>
         where TS : Saga<TD> 
-        where TD : ISagaState
+        where TD : SagaState
     {
         public SagaConfigurator(IServiceCollection services)
         {

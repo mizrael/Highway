@@ -17,8 +17,9 @@ namespace Highway.Core.Tests
             var sagaFactory = NSubstitute.Substitute.For<ISagaFactory<DummySaga, DummySagaState>>();
             var sagaStateFactory = NSubstitute.Substitute.For<ISagaStateFactory<DummySagaState>>();
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository<DummySagaState>>();
+            var publisher = NSubstitute.Substitute.For<IMessageBus>();
             
-            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateFactory, sagaStateRepo);
+            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateFactory, sagaStateRepo, publisher);
 
             var message = new StartDummySaga(Guid.NewGuid());
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
@@ -38,10 +39,12 @@ namespace Highway.Core.Tests
 
             var state = new DummySagaState(message.GetCorrelationId());
             sagaStateRepo.FindByCorrelationIdAsync(message.GetCorrelationId())
-                .Returns(state); 
+                .Returns(state);
 
-            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateFactory, sagaStateRepo);
-            
+            var publisher = NSubstitute.Substitute.For<IMessageBus>();
+
+            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateFactory, sagaStateRepo, publisher);
+
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 
@@ -61,15 +64,15 @@ namespace Highway.Core.Tests
                 .Returns(state);
 
             var publisher = NSubstitute.Substitute.For<IMessageBus>();
-            var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>(publisher);
+            var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>();
             saga.When(s => s.HandleAsync(Arg.Any<IMessageContext<StartDummySaga>>(), Arg.Any<CancellationToken>()))
                 .DoNotCallBase();
 
             var sagaFactory = NSubstitute.Substitute.For<ISagaFactory<DummySaga, DummySagaState>>();
             sagaFactory.Create(state)
                 .Returns(saga);
-
-            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateFactory, sagaStateRepo);
+            
+            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateFactory, sagaStateRepo, publisher);
 
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
