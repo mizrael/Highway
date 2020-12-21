@@ -22,6 +22,7 @@ namespace Highway.Samples.Console
                 {
                     cfg.AddSaga<DummySaga, DummySagaState>()
                         .UseStateFactory(msg => new DummySagaState(msg.GetCorrelationId()))
+                        .UseInMemoryTransport()
                         .PersistInMemory();
                 });
 
