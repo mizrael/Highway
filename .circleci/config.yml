@@ -1,20 +1,12 @@
-version: 2.1
+ version: 2.1
 
-jobs:
-  build:
-    docker:
-      - image: mcr.microsoft.com/dotnet/core/sdk
+ orbs:
+  win: circleci/windows@2.2.0
 
-    steps:
-      - checkout
-
-      - run:
-          name: Build solution
-          command: |
-            cd ./src
-            dotnet build
-
-      - run:
-          name: Test
-          command: |            
-            dotnet test
+ jobs:
+   build:
+     executor: win/default     
+    
+     steps:
+       - checkout
+       - run: dotnet build
