@@ -82,7 +82,10 @@ namespace Highway.Core.Tests
             await saga.Received(1)
                 .HandleAsync(messageContext, Arg.Any<CancellationToken>());
 
-            await sagaStateRepo.Received(1)
+            await publisher.PublishAsync(Arg.Any<StartDummySaga>(), Arg.Any<CancellationToken>());
+            await publisher.PublishAsync(Arg.Any<DummySagaStarted>(), Arg.Any<CancellationToken>());
+
+            await sagaStateRepo.Received(2)
                 .SaveAsync(message.GetCorrelationId(), state);
         }
     }
