@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
 using Highway.Core.Persistence;
@@ -17,13 +18,13 @@ namespace Highway.Persistence.InMemory
             _items = new ConcurrentDictionary<Guid, TD>();
         }
 
-        public Task<TD> FindByCorrelationIdAsync(Guid correlationId)
+        public Task<TD> FindByCorrelationIdAsync(Guid correlationId, CancellationToken cancellationToken = default)
         {
             var state = _items.GetValueOrDefault(correlationId);
             return Task.FromResult(state);
         }
 
-        public Task SaveAsync(Guid correlationId, TD state)
+        public Task SaveAsync(Guid correlationId, TD state, CancellationToken cancellationToken = default)
         {
             _items.AddOrUpdate(correlationId, state, (k, v) => state);
             return Task.CompletedTask;

@@ -8,7 +8,7 @@ namespace Highway.Persistence.InMemory
 {
     public static class InMemorySagaConfiguratorExtensions
     {
-        public static ISagaConfigurator<TS, TD> PersistInMemory<TS, TD>(this ISagaConfigurator<TS, TD> sagaConfigurator)
+        public static ISagaConfigurator<TS, TD> UseInMemoryPersistence<TS, TD>(this ISagaConfigurator<TS, TD> sagaConfigurator)
             where TS : Saga<TD>
             where TD : SagaState
         {
