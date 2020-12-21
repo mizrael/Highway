@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Highway.Core
 {
@@ -6,7 +8,12 @@ namespace Highway.Core
         where TD : ISagaState
     {
         public abstract Guid GetCorrelationId();
-        
+
+        protected Task PublishAsync<TM>(TM message, CancellationToken cancellationToken = default) where TM : IMessage
+        {
+            //TODO: outbox
+        }
+
         public TD State { get; internal set; }
 
     }
