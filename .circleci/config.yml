@@ -16,5 +16,6 @@ jobs:
 
       - run:
           name: Test
-          command: |            
+          command: |     
+            cd ./src
             dotnet test
