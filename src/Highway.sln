@@ -9,13 +9,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Highway.Core.Tests", "Highw
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Highway.Persistence.InMemory", "Highway.Persistence.InMemory\Highway.Persistence.InMemory.csproj", "{1E8C0BF5-04DA-4228-9F78-C69E7EAE08F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Highway.Persistence.InMemory.Tests", "Highway.Persistence.InMemory.Tests\Highway.Persistence.InMemory.Tests.csproj", "{E7C7C0F4-CD99-4F97-A905-13EAABF10498}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Highway.Persistence.InMemory.Tests", "Highway.Persistence.InMemory.Tests\Highway.Persistence.InMemory.Tests.csproj", "{E7C7C0F4-CD99-4F97-A905-13EAABF10498}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{53721405-CDB0-425B-8B25-F9D02A2BA45E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{5594CC89-F905-46B2-B938-27B8050D9CA3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Highway.Samples.Console", "Highway.Samples.Console\Highway.Samples.Console.csproj", "{F6023CA2-2CFA-496B-A4B6-4DF4A767A166}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Highway.Samples.Console", "Highway.Samples.Console\Highway.Samples.Console.csproj", "{F6023CA2-2CFA-496B-A4B6-4DF4A767A166}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{96F8475D-648C-42EC-BE8B-CFDE3F9F54EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +45,10 @@ Global
 		{F6023CA2-2CFA-496B-A4B6-4DF4A767A166}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6023CA2-2CFA-496B-A4B6-4DF4A767A166}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6023CA2-2CFA-496B-A4B6-4DF4A767A166}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96F8475D-648C-42EC-BE8B-CFDE3F9F54EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96F8475D-648C-42EC-BE8B-CFDE3F9F54EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96F8475D-648C-42EC-BE8B-CFDE3F9F54EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96F8475D-648C-42EC-BE8B-CFDE3F9F54EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

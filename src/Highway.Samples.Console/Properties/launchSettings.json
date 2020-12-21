@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Highway.Samples.Console": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

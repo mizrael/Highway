@@ -1,0 +1,47 @@
+version: '3.4'
+
+services:
+  highway.samples.infrastructure.rabbitmq:        
+    image: rabbitmq:3-management-alpine
+    container_name: highway.samples.infrastructure.rabbitmq    
+    restart: always
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:15672"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+    environment:
+     RABBITMQ_DEFAULT_VHOST: "/"
+    ports:     
+      - "15671:15671"
+      - "15672:15672"   
+    networks:
+      - infrastructure
+
+  highway.samples.infrastructure.mongodb:
+    image: mongo:latest
+    container_name: highway.samples.infrastructure.mongodb    
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - 27017:27017    
+    networks:
+      - infrastructure    
+
+  highway.samples.console:
+    image: ${DOCKER_REGISTRY-}highwaysamplesconsole
+    depends_on:
+      - highway.samples.infrastructure.rabbitmq
+      - highway.samples.infrastructure.mongodb
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+    networks:
+      - infrastructure    
+    build:
+      context: .
+      dockerfile: Highway.Samples.Console/Dockerfile
+
+networks:
+  infrastructure:
