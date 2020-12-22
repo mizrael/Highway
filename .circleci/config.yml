@@ -12,10 +12,10 @@ jobs:
           name: Build solution
           command: |
             cd ./src
-            dotnet build
+            dotnet build *.sln
 
       - run:
           name: Test
           command: |     
             cd ./src
-            dotnet test
+            dotnet test *.sln
