@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
@@ -7,10 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Highway.Samples.Console
 {
 
-    public record DummySagaState(Guid Id) : SagaState
-    {
-        public static DummySagaState Empty() => new DummySagaState(Guid.Empty);
-    }
+    public record DummySagaState(Guid Id) : SagaState;
 
     public record StartDummySaga(Guid Id) : ICommand
     {

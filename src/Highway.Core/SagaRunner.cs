@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core.DependencyInjection;
@@ -38,13 +40,13 @@ namespace Highway.Core
             {
                 // if state is null, means we're starting a new saga. We have to check if the current message can
                 // actually start the specified saga or not
-                if(typeof(IStartedBy<TM>).IsAssignableFrom(typeof(TS)))
+                if (typeof(IStartedBy<TM>).IsAssignableFrom(typeof(TS)))
                     state = _sagaStateFactory.Create(messageContext.Message);
             }
-                
+
             if (null == state)
                 throw new StateCreationException(typeof(TD), "unable to create state instance");
-            
+
             var saga = _sagaFactory.Create(state);
             if (null == saga)
                 throw new SagaNotFoundException($"unable to create Saga of type '{typeof(TS).FullName}'");
@@ -53,12 +55,15 @@ namespace Highway.Core
                 throw new ConsumerNotFoundException(typeof(TM));
 
             await handler.HandleAsync(messageContext, cancellationToken);
+
+            await _stateRepo.SaveAsync(correlationId, state);
+
+            var exceptions = await state.ProcessOutboxAsync(_publisher, cancellationToken);
+
+            await _stateRepo.SaveAsync(correlationId, state);
             
-            await _stateRepo.SaveAsync(correlationId, state);
-
-            await state.ProcessOutboxAsync(_publisher, cancellationToken);
-
-            await _stateRepo.SaveAsync(correlationId, state);
+            if(exceptions.Any())
+                throw new AggregateException(exceptions);
         }
     }
 }

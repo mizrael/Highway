@@ -9,6 +9,8 @@ namespace Highway.Core
     public abstract record SagaState
     {
         private readonly Queue<IMessage> _outbox = new Queue<IMessage>();
+
+        public IReadOnlyCollection<IMessage> Outbox => _outbox;
         
         public void EnqueueMessage(IMessage message)
         {
@@ -17,7 +19,7 @@ namespace Highway.Core
             _outbox.Enqueue(message);
         }
 
-        public async Task ProcessOutboxAsync(IMessageBus _publisher, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Exception>> ProcessOutboxAsync(IMessageBus _publisher, CancellationToken cancellationToken = default)
         {
             var failedMessages = new Queue<IMessage>();
             var exceptions = new List<Exception>();
@@ -35,9 +37,6 @@ namespace Highway.Core
                     exceptions.Add(e);
                 }
             }
-
-            if (!failedMessages.Any())
-                return;
             
             while (failedMessages.Any())
             {
@@ -45,7 +44,7 @@ namespace Highway.Core
                 _outbox.Enqueue(failed);
             }
 
-            throw new AggregateException(exceptions);
+            return exceptions;
         }
     }
 }

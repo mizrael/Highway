@@ -26,18 +26,27 @@ namespace Highway.Persistence.Mongo
             var entity = await cursor.FirstOrDefaultAsync(cancellationToken);
             if (entity is null)
                 return null;
-            
-            var payload = BsonSerializer.Deserialize<TD>(entity.Data);
-            return payload; 
+
+            // can't deserialize a BsonDocument to <TD> so we have to use JSON instead
+            var state = System.Text.Json.JsonSerializer.Deserialize<TD>(entity.Data);
+            return state;
         }
 
         public async Task SaveAsync(Guid correlationId, TD state, CancellationToken cancellationToken = default)
         {
             var json = System.Text.Json.JsonSerializer.Serialize(state);
-            var payload = BsonDocument.Parse(json);
             
-            var entity = new Entities.SagaState(correlationId, payload);
-            await _dbContext.SagaStates.InsertOneAsync(entity, options: null, cancellationToken);
+            var stateType = typeof(TD);
+
+            var update = Builders<Entities.SagaState>.Update
+                .Set(s => s.Id, correlationId)
+                .Set(s => s.Type, stateType.FullName)
+                .Set(s => s.Data, json);
+
+            var options = new UpdateOptions(){
+                IsUpsert = true
+            };
+            await _dbContext.SagaStates.UpdateOneAsync(s => s.Id == correlationId, update, options, cancellationToken);
         }
     }
 }
