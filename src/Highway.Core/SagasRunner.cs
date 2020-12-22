@@ -28,23 +28,20 @@ namespace Highway.Core
             if (messageContext == null) 
                 throw new ArgumentNullException(nameof(messageContext));
 
-            var stateTypes = _stateTypeResolver.Resolve<TM>();
-            if (!stateTypes.Any())
+            var types = _stateTypeResolver.Resolve<TM>();
+            if (default == types)
                 throw new SagaNotFoundException($"no saga registered for message of type '{typeof(TM).FullName}'");
 
-            foreach (var (sagaType, stateType) in stateTypes)
-            {
-                var runnerType = _typesCache.GetGeneric(typeof(ISagaRunner<,>), sagaType, stateType);
-                var runner = _serviceProvider.GetService(runnerType);
-                if(null == runner)
-                    throw new SagaNotFoundException($"no saga registered on DI for message of type '{typeof(TM).FullName}'");
+            var runnerType = _typesCache.GetGeneric(typeof(ISagaRunner<,>), types.sagaType, types.sagaStateType);
+            var runner = _serviceProvider.GetService(runnerType);
+            if (null == runner)
+                throw new SagaNotFoundException($"no saga registered on DI for message of type '{typeof(TM).FullName}'");
 
-                var genericHandlerMethod = _typesCache.GetMethod(runnerType, nameof(ISagaRunner<Saga<SagaState>, SagaState>.RunAsync));
-                var handlerMethod = genericHandlerMethod.MakeGenericMethod(typeof(TM));
+            var genericHandlerMethod = _typesCache.GetMethod(runnerType, nameof(ISagaRunner<Saga<SagaState>, SagaState>.RunAsync));
+            var handlerMethod = genericHandlerMethod.MakeGenericMethod(typeof(TM));
 
-                var t = handlerMethod.Invoke(runner, new[] { (object)messageContext, (object)cancellationToken }) as Task;
-                await t;
-            }
+            var t = handlerMethod.Invoke(runner, new[] { (object)messageContext, (object)cancellationToken }) as Task;
+            await t;
         }
     }
 }

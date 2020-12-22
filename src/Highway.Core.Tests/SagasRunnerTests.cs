@@ -29,10 +29,7 @@ namespace Highway.Core.Tests
         public async Task RunAsync_should_throw_SagaNotFoundException_if_no_saga_registered_on_DI()
         {
             var stateTypeResolver = NSubstitute.Substitute.For<ISagaTypeResolver>();
-            var types = new[]
-            {
-                (typeof(DummySaga), typeof(DummySagaState))
-            };
+            var types = (typeof(DummySaga), typeof(DummySagaState));
             stateTypeResolver.Resolve<StartDummySaga>()
                 .Returns(types);
             
