@@ -47,6 +47,10 @@ namespace Highway.Core
             if (null == state)
                 throw new StateCreationException(typeof(TD), "unable to create state instance");
 
+            // TODO: add lock on state to prevent concurrency issues
+            // TODO: consider adding history of processed messages
+            // TODO: if a saga instance has to wait to enter the lock, check if the message was processed already
+            
             var saga = _sagaFactory.Create(state);
             if (null == saga)
                 throw new SagaNotFoundException($"unable to create Saga of type '{typeof(TS).FullName}'");
@@ -58,6 +62,7 @@ namespace Highway.Core
 
             await _stateRepo.SaveAsync(correlationId, state);
 
+            // TODO: make sure state locks don't cause issue here (eg. loopback messages cannot be processed)
             var exceptions = await state.ProcessOutboxAsync(_publisher, cancellationToken);
 
             await _stateRepo.SaveAsync(correlationId, state);
