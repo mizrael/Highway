@@ -30,18 +30,5 @@ services:
     networks:
       - infrastructure    
 
-  highway.samples.console:
-    image: ${DOCKER_REGISTRY-}highwaysamplesconsole
-    depends_on:
-      - highway.samples.infrastructure.rabbitmq
-      - highway.samples.infrastructure.mongodb
-    environment:
-      - DOTNET_ENVIRONMENT=Development
-    networks:
-      - infrastructure    
-    build:
-      context: .
-      dockerfile: Highway.Samples.Console/Dockerfile
-
 networks:
   infrastructure:
