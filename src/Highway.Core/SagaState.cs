@@ -19,7 +19,7 @@ namespace Highway.Core
             _outbox.Enqueue(message);
         }
 
-        public async Task<IEnumerable<Exception>> ProcessOutboxAsync(IMessageBus _publisher, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Exception>> ProcessOutboxAsync(IMessageBus bus, CancellationToken cancellationToken = default)
         {
             var failedMessages = new Queue<IMessage>();
             var exceptions = new List<Exception>();
@@ -29,7 +29,7 @@ namespace Highway.Core
                 var message = _outbox.Dequeue();
                 try
                 {
-                    await _publisher.PublishAsync((dynamic)message, cancellationToken);
+                    await bus.PublishAsync((dynamic)message, cancellationToken);
                 }
                 catch (Exception e)
                 {

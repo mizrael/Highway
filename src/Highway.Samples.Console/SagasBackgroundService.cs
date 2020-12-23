@@ -2,23 +2,27 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Highway.Samples.Console
 {
     public class SagasBackgroundService : BackgroundService
     {
-        private readonly IMessageBus _bus;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public SagasBackgroundService(IMessageBus bus)
+        public SagasBackgroundService(IServiceScopeFactory scopeFactory)
         {
-            _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            using var scope = _scopeFactory.CreateScope();
+            
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
             var message = new StartDummySaga(Guid.NewGuid());
-            await _bus.PublishAsync(message, stoppingToken);
+            await bus.PublishAsync(message, stoppingToken);
         }
     }
 }

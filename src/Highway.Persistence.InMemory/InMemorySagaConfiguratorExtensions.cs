@@ -12,10 +12,9 @@ namespace Highway.Persistence.InMemory
             where TS : Saga<TD>
             where TD : SagaState
         {
-            var sagaStateType = typeof(TD);
-
-            sagaConfigurator.Services.AddSingleton(typeof(ISagaStateRepository<>).MakeGenericType(sagaStateType),
-                typeof(InMemorySagaStateRepository<>).MakeGenericType(sagaStateType));
+            sagaConfigurator.Services.AddSingleton(typeof(ISagaStateRepository), typeof(InMemorySagaStateRepository));
+            sagaConfigurator.Services.AddSingleton<IUnitOfWork, InMemoryUnitOfWork>();
+            
             return sagaConfigurator;
         }
 
@@ -38,10 +37,10 @@ namespace Highway.Persistence.InMemory
                 var messageType = i.GetGenericArguments().First();
 
                 sagaConfigurator.Services.AddSingleton(typeof(IPublisher<>).MakeGenericType(messageType), 
-                                                       typeof(InMemoryPublisher<>).MakeGenericType(messageType));
+                                                    typeof(InMemoryPublisher<>).MakeGenericType(messageType));
 
                 sagaConfigurator.Services.AddSingleton(typeof(ISubscriber<>).MakeGenericType(messageType),
-                                                       typeof(InMemorySubscriber<>).MakeGenericType(messageType));
+                                                    typeof(InMemorySubscriber<>).MakeGenericType(messageType));
             }
 
             return sagaConfigurator;

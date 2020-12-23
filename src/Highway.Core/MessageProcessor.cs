@@ -6,14 +6,11 @@ namespace Highway.Core
 {
     public class MessageProcessor : IMessageProcessor
     {
-        private readonly IServiceProvider _serviceProvider;
         private readonly ISagasRunner _sagasRunner;
         private readonly IMessageContextFactory _messageContextFactory;
 
-        public MessageProcessor(IServiceProvider serviceProvider, 
-            ISagasRunner sagasRunner, IMessageContextFactory messageContextFactory)
+        public MessageProcessor(ISagasRunner sagasRunner, IMessageContextFactory messageContextFactory)
         {
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _sagasRunner = sagasRunner ?? throw new ArgumentNullException(nameof(sagasRunner));
             _messageContextFactory = messageContextFactory ?? throw new ArgumentNullException(nameof(messageContextFactory));
         }

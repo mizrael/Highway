@@ -29,7 +29,8 @@ namespace Highway.Persistence.Mongo
                     mapper.MapIdField(c => c.Id).SetSerializer(guidSerializer);
                     mapper.MapProperty(c => c.Data);
                     mapper.MapProperty(c => c.Type);
-                    mapper.MapCreator(c => new Entities.SagaState(c.Id, c.Data, c.Type));
+                    mapper.MapProperty(c => c.Version);
+                    mapper.MapCreator(s => new Entities.SagaState(s.Id, s.Data, s.Type, s.Version));
                 });
         }
      

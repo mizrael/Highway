@@ -1,11 +1,8 @@
 using System;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core.DependencyInjection;
 using Highway.Core.Exceptions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Highway.Core
 {

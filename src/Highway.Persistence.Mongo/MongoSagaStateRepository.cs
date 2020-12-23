@@ -3,27 +3,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
 using Highway.Core.Persistence;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace Highway.Persistence.Mongo
 {
-    public class MongoSagaStateRepository<TD> : ISagaStateRepository<TD>
-        where TD : SagaState
+    public class MongoSagaStateRepository : ISagaStateRepository
     {
         private readonly IDbContext _dbContext;
-
+        
         public MongoSagaStateRepository(IDbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<TD> FindByCorrelationIdAsync(Guid correlationId, CancellationToken cancellationToken = default)
+        public async Task<TD> FindByCorrelationIdAsync<TD>(Guid correlationId, ITransaction transaction = null, CancellationToken cancellationToken = default)
+            where TD : SagaState
         {
-            var cursor = await _dbContext.SagaStates.FindAsync(c => c.Id == correlationId,
-                null, cancellationToken);
-            var entity = await cursor.FirstOrDefaultAsync(cancellationToken);
+            var filter = Builders<Entities.SagaState>.Filter.Eq(s => s.Id, correlationId);
+            
+            var mongoTransaction = transaction as MongoTransaction;
+
+            var cursor = await _dbContext.SagaStates.FindAsync(s => s.Id == correlationId, null, cancellationToken).ConfigureAwait(false);
+            var entity = await cursor.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+
             if (entity is null)
                 return null;
 
@@ -32,7 +34,8 @@ namespace Highway.Persistence.Mongo
             return state;
         }
 
-        public async Task SaveAsync(Guid correlationId, TD state, CancellationToken cancellationToken = default)
+        public async Task SaveAsync<TD>(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default)
+            where TD : SagaState
         {
             var json = System.Text.Json.JsonSerializer.Serialize(state);
             
@@ -41,12 +44,19 @@ namespace Highway.Persistence.Mongo
             var update = Builders<Entities.SagaState>.Update
                 .Set(s => s.Id, correlationId)
                 .Set(s => s.Type, stateType.FullName)
-                .Set(s => s.Data, json);
+                .Set(s => s.Data, json)
+                .Inc(s => s.Version, 1);
 
             var options = new UpdateOptions(){
                 IsUpsert = true
             };
-            await _dbContext.SagaStates.UpdateOneAsync(s => s.Id == correlationId, update, options, cancellationToken);
+
+            var mongoTransaction = transaction as MongoTransaction;
+            
+            await _dbContext.SagaStates.UpdateOneAsync(mongoTransaction?.Session, 
+                    s => s.Id == correlationId, update, options, 
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

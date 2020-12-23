@@ -8,23 +8,24 @@ using Highway.Core.Persistence;
 
 namespace Highway.Persistence.InMemory
 {
-    public class InMemorySagaStateRepository<TD> : ISagaStateRepository<TD>
-        where TD : SagaState
+    public class InMemorySagaStateRepository : ISagaStateRepository
     {
-        private readonly ConcurrentDictionary<Guid, TD> _items;
+        private readonly ConcurrentDictionary<Guid, SagaState> _items;
 
         public InMemorySagaStateRepository()
         {
-            _items = new ConcurrentDictionary<Guid, TD>();
+            _items = new ConcurrentDictionary<Guid, SagaState>();
         }
 
-        public Task<TD> FindByCorrelationIdAsync(Guid correlationId, CancellationToken cancellationToken = default)
+        public Task<TD> FindByCorrelationIdAsync<TD>(Guid correlationId, ITransaction transaction = null, CancellationToken cancellationToken = default)
+            where TD : SagaState
         {
             var state = _items.GetValueOrDefault(correlationId);
-            return Task.FromResult(state);
+            return Task.FromResult(state as TD);
         }
 
-        public Task SaveAsync(Guid correlationId, TD state, CancellationToken cancellationToken = default)
+        public Task SaveAsync<TD>(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default)
+            where TD : SagaState
         {
             _items.AddOrUpdate(correlationId, state, (k, v) => state);
             return Task.CompletedTask;

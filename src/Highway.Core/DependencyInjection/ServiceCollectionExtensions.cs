@@ -16,7 +16,7 @@ namespace Highway.Core.DependencyInjection
 
             services.AddSingleton<IMessageBus, DefaultMessageBus>();
             services.AddSingleton<IMessageProcessor, MessageProcessor>();
-
+            
             var builder = new BusConfigurator(services, stateTypeResolver);
             configure?.Invoke(builder);
             

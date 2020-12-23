@@ -13,20 +13,22 @@ namespace Highway.Core
         where TD : SagaState
     {
         private readonly ISagaStateFactory<TD> _sagaStateFactory;
-        private readonly ISagaStateRepository<TD> _stateRepo;
-        private readonly IMessageBus _publisher;
+        private readonly IUnitOfWork _uow;
+        private readonly IMessageBus _bus;
         
-        public SagaStateService(ISagaStateFactory<TD> sagaStateFactory, ISagaStateRepository<TD> stateRepo, IMessageBus publisher)
+        public SagaStateService(ISagaStateFactory<TD> sagaStateFactory, IUnitOfWork uow, IMessageBus publisher)
         {
             _sagaStateFactory = sagaStateFactory ?? throw new ArgumentNullException(nameof(sagaStateFactory));
-            _stateRepo = stateRepo ?? throw new ArgumentNullException(nameof(stateRepo));
-            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _bus = publisher ?? throw new ArgumentNullException(nameof(publisher));
         }
 
         public async Task<TD> GetAsync<TM>(IMessageContext<TM> messageContext,
+                                            ITransaction transaction = null,
                                             CancellationToken cancellationToken = default) where TM : IMessage
         {
-            var state = await _stateRepo.FindByCorrelationIdAsync(messageContext.Message.GetCorrelationId(), cancellationToken);
+            var correlationId = messageContext.Message.GetCorrelationId();
+            var state = await _uow.SagaStatesRepository.FindByCorrelationIdAsync<TD>(correlationId, transaction, cancellationToken);
 
             if (null == state) 
             {
@@ -37,6 +39,7 @@ namespace Highway.Core
                     throw new StateCreationException(typeof(TD), $"saga cannot be started by message '{typeof(TM).FullName}'");
 
                 state = _sagaStateFactory.Create(messageContext.Message);
+                await _uow.SagaStatesRepository.SaveAsync(correlationId, state, transaction, cancellationToken);
             }
 
             if (null == state)
@@ -44,14 +47,14 @@ namespace Highway.Core
             return state;
         }
         
-        public async Task SaveAsync(Guid correlationId, TD state, CancellationToken cancellationToken)
+        public async Task SaveAsync(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default)
         {
-            await _stateRepo.SaveAsync(correlationId, state, cancellationToken);
+            await _uow.SagaStatesRepository.SaveAsync(correlationId, state, transaction, cancellationToken);
 
             // TODO: make sure state locks don't cause issue here (eg. loopback messages cannot be processed)
-            var exceptions = await state.ProcessOutboxAsync(_publisher, cancellationToken);
+            var exceptions = await state.ProcessOutboxAsync(_bus, cancellationToken);
 
-            await _stateRepo.SaveAsync(correlationId, state, cancellationToken);
+            await _uow.SagaStatesRepository.SaveAsync(correlationId, state, transaction, cancellationToken);
 
             if (exceptions.Any())
                 throw new AggregateException(exceptions);

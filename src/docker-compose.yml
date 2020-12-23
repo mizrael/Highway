@@ -1,23 +1,6 @@
 version: '3.4'
 
 services:
-  highway.samples.infrastructure.rabbitmq:        
-    image: rabbitmq:3-management-alpine
-    container_name: highway.samples.infrastructure.rabbitmq    
-    restart: always
-    healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:15672"]
-        interval: 30s
-        timeout: 10s
-        retries: 5
-    environment:
-     RABBITMQ_DEFAULT_VHOST: "/"
-    ports:     
-      - "15671:15671"
-      - "15672:15672"   
-    networks:
-      - infrastructure
-
   highway.samples.infrastructure.mongodb:
     image: mongo:latest
     container_name: highway.samples.infrastructure.mongodb    
@@ -25,10 +8,15 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_REPLICA_SET_NAME: highway
     ports:
       - 27017:27017    
-    networks:
-      - infrastructure    
-
-networks:
-  infrastructure:
+    command: ["--replSet", "highway", "--bind_ip_all"]  
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u root -p password --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    volumes:        
+        - ./.docker/mongodb/initdb.d/:/docker-entrypoint-initdb.d/
+        - ./.docker/mongodb/data/db/:/data/db/
+        - ./.docker/mongodb/data/log/:/var/log/mongodb/

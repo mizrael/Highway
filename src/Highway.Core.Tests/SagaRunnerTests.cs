@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Highway.Core.DependencyInjection;
 using Highway.Core.Exceptions;
 using Highway.Core.Persistence;
 using NSubstitute;
@@ -22,11 +21,16 @@ namespace Highway.Core.Tests
             
             var sagaStateService = NSubstitute.Substitute.For<ISagaStateService<DummySaga, DummySagaState>>();
 
+            var uow = NSubstitute.Substitute.For<IUnitOfWork>();
+            var transaction = NSubstitute.Substitute.For<ITransaction>();
+            uow.StartTransactionAsync(Arg.Any<CancellationToken>())
+                .Returns(transaction);
+            
             var state = new DummySagaState(message.GetCorrelationId());
-            sagaStateService.GetAsync(messageContext, Arg.Any<CancellationToken>())
+            sagaStateService.GetAsync(messageContext, Arg.Any<ITransaction>(), Arg.Any<CancellationToken>())
                 .Returns(state);
             
-            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateService);
+            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateService, uow);
 
             await Assert.ThrowsAsync<SagaNotFoundException>(() => sut.RunAsync(messageContext, CancellationToken.None));
         }
@@ -42,7 +46,7 @@ namespace Highway.Core.Tests
             var sagaStateService = NSubstitute.Substitute.For<ISagaStateService<DummySaga, DummySagaState>>();
 
             var state = new DummySagaState(message.GetCorrelationId());
-            sagaStateService.GetAsync(messageContext, Arg.Any<CancellationToken>())
+            sagaStateService.GetAsync(messageContext, Arg.Any<ITransaction>(), Arg.Any<CancellationToken>())
                 .Returns(state);
 
             var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>();
@@ -52,8 +56,13 @@ namespace Highway.Core.Tests
             var sagaFactory = NSubstitute.Substitute.For<ISagaFactory<DummySaga, DummySagaState>>();
             sagaFactory.Create(state)
                 .Returns(saga);
-            
-            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateService);
+
+            var uow = NSubstitute.Substitute.For<IUnitOfWork>();
+            var transaction = NSubstitute.Substitute.For<ITransaction>();
+            uow.StartTransactionAsync(Arg.Any<CancellationToken>())
+                .Returns(transaction);
+
+            var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateService, uow);
 
             await sut.RunAsync(messageContext, CancellationToken.None);
 

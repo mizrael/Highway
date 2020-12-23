@@ -1,10 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using Highway.Core;
+﻿using System.Threading.Tasks;
 using Highway.Core.DependencyInjection;
 using Highway.Persistence.InMemory;
 using Highway.Persistence.Mongo;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

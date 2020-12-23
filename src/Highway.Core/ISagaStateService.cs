@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Highway.Core.Persistence;
 
 namespace Highway.Core
 {
@@ -9,8 +10,9 @@ namespace Highway.Core
         where TD : SagaState
     {
         Task<TD> GetAsync<TM>(IMessageContext<TM> messageContext,
+                              ITransaction transaction = null,
                               CancellationToken cancellationToken = default) where TM : IMessage;
 
-        Task SaveAsync(Guid correlationId, TD state, CancellationToken cancellationToken = default);
+        Task SaveAsync(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default);
     }
 }

@@ -14,17 +14,16 @@ namespace Highway.Persistence.Mongo
             where TS : Saga<TD>
             where TD : SagaState
         {
-            var sagaStateType = typeof(TD);
-
             sagaConfigurator.Services.AddSingleton(ctx => new MongoClient(connectionString: config.ConnectionString))
                 .AddSingleton(ctx =>
                 {
                     var client = ctx.GetRequiredService<MongoClient>();
                     var database = client.GetDatabase(config.DbName);
                     return database;
-                }).AddSingleton<IDbContext, DbContext>()
-                  .AddSingleton(typeof(ISagaStateRepository<>).MakeGenericType(sagaStateType),
-                typeof(MongoSagaStateRepository<>).MakeGenericType(sagaStateType));
+                })
+                .AddSingleton<IDbContext, DbContext>()
+                  .AddSingleton<IUnitOfWork, MongoUnitOfWork>()
+                  .AddSingleton(typeof(ISagaStateRepository), typeof(MongoSagaStateRepository));
             return sagaConfigurator;
         }   
     }
