@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Highway.Core.DependencyInjection
 {
@@ -8,7 +9,7 @@ namespace Highway.Core.DependencyInjection
         where TD : SagaState
     {
         IServiceCollection Services { get; }
-        ISagaConfigurator<TS, TD> UseStateFactory(Func<IMessage, TD> stateFactory);  //TODO: add default when registering the saga
+        ISagaConfigurator<TS, TD> UseStateFactory(Func<IMessage, TD> stateFactory);
     }
 
     internal class SagaConfigurator<TS, TD> : ISagaConfigurator<TS, TD>
@@ -26,8 +27,10 @@ namespace Highway.Core.DependencyInjection
         {
             var stateType = typeof(TD);
             var factory = new LambdaSagaStateFactory<TD>(stateFactory);
-            this.Services.AddSingleton(typeof(ISagaStateFactory<>).MakeGenericType(stateType),
-                                    factory);
+
+            var descriptor = ServiceDescriptor.Singleton(typeof(ISagaStateFactory<>).MakeGenericType(stateType), factory);
+            this.Services.Replace(descriptor);
+            
             return this;
         }
     }

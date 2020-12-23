@@ -64,6 +64,9 @@ namespace Highway.Core.DependencyInjection
                 Services.AddTransient(i, sagaType);
             }
 
+            Services.AddSingleton(typeof(ISagaStateService<,>).MakeGenericType(sagaType, sagaStateType),
+                                 typeof(SagaStateService<,>).MakeGenericType(sagaType, sagaStateType));
+
             Services.AddSingleton(typeof(ISagaRunner<,>).MakeGenericType(sagaType, sagaStateType),
                                   typeof(SagaRunner<,>).MakeGenericType(sagaType, sagaStateType));
                 

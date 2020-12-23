@@ -16,9 +16,7 @@ namespace Highway.Persistence.Mongo
         {
             var sagaStateType = typeof(TD);
 
-            sagaConfigurator.Services.AddSingleton(ctx =>{
-                    return new MongoClient(connectionString: config.ConnectionString);
-                })
+            sagaConfigurator.Services.AddSingleton(ctx => new MongoClient(connectionString: config.ConnectionString))
                 .AddSingleton(ctx =>
                 {
                     var client = ctx.GetRequiredService<MongoClient>();

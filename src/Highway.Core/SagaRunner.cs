@@ -13,39 +13,20 @@ namespace Highway.Core
         where TS : Saga<TD>
         where TD : SagaState
     {
-        private readonly ISagaStateFactory<TD> _sagaStateFactory;
+        private readonly ISagaStateService<TS, TD> _sagaStateService;
         private readonly ISagaFactory<TS, TD> _sagaFactory;
-        private readonly ISagaStateRepository<TD> _stateRepo;
-        private readonly IMessageBus _publisher;
         
         public SagaRunner(ISagaFactory<TS, TD> sagaFactory,
-            ISagaStateFactory<TD> sagaStateFactory,
-            ISagaStateRepository<TD> stateRepo, 
-            IMessageBus publisher)
+                          ISagaStateService<TS, TD> sagaStateService)
         {
             _sagaFactory = sagaFactory ?? throw new ArgumentNullException(nameof(sagaFactory));
-            _sagaStateFactory = sagaStateFactory ?? throw new ArgumentNullException(nameof(sagaStateFactory));
-            _stateRepo = stateRepo ?? throw new ArgumentNullException(nameof(stateRepo));
-            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
+            _sagaStateService = sagaStateService ?? throw new ArgumentNullException(nameof(sagaStateService));
         }
 
         public async Task RunAsync<TM>(IMessageContext<TM> messageContext, CancellationToken cancellationToken)
             where TM : IMessage
         {
-            var correlationId = messageContext.Message.GetCorrelationId();
-
-            var state = await _stateRepo.FindByCorrelationIdAsync(correlationId);
-
-            if (null == state) //TODO: add test
-            {
-                // if state is null, means we're starting a new saga. We have to check if the current message can
-                // actually start the specified saga or not
-                if (typeof(IStartedBy<TM>).IsAssignableFrom(typeof(TS)))
-                    state = _sagaStateFactory.Create(messageContext.Message);
-            }
-
-            if (null == state)
-                throw new StateCreationException(typeof(TD), "unable to create state instance");
+            var state = await _sagaStateService.GetAsync(messageContext, cancellationToken);
 
             // TODO: add lock on state to prevent concurrency issues
             // TODO: consider adding history of processed messages
@@ -60,15 +41,9 @@ namespace Highway.Core
 
             await handler.HandleAsync(messageContext, cancellationToken);
 
-            await _stateRepo.SaveAsync(correlationId, state);
-
-            // TODO: make sure state locks don't cause issue here (eg. loopback messages cannot be processed)
-            var exceptions = await state.ProcessOutboxAsync(_publisher, cancellationToken);
-
-            await _stateRepo.SaveAsync(correlationId, state);
-            
-            if(exceptions.Any())
-                throw new AggregateException(exceptions);
+            var correlationId = messageContext.Message.GetCorrelationId();
+            await _sagaStateService.SaveAsync(correlationId, state, cancellationToken);
         }
+
     }
 }
