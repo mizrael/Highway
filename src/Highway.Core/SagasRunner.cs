@@ -37,8 +37,7 @@ namespace Highway.Core
             var genericHandlerMethod = _typesCache.GetMethod(runnerType, nameof(ISagaRunner<Saga<SagaState>, SagaState>.RunAsync));
             var handlerMethod = genericHandlerMethod.MakeGenericMethod(typeof(TM));
 
-            var t = handlerMethod.Invoke(runner, new[] { (object)messageContext, (object)cancellationToken }) as Task;
-            await t;
+            await (Task)handlerMethod.Invoke(runner, new[] { (object)messageContext, (object)cancellationToken });
         }
     }
 }
