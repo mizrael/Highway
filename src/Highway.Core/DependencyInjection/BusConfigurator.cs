@@ -9,33 +9,20 @@ namespace Highway.Core.DependencyInjection
     internal class BusConfigurator : IBusConfigurator
     {
         private readonly ISagaTypeResolver _typeResolver;
-
+        private readonly IServiceCollection _services;
+        
         public BusConfigurator(IServiceCollection services, ISagaTypeResolver typeResolver)
         {
-            Services = services ?? throw new ArgumentNullException(nameof(services));
+            _services = services ?? throw new ArgumentNullException(nameof(services));
             _typeResolver = typeResolver ?? throw new ArgumentNullException(nameof(typeResolver));
         }
-
-        public IBusConfigurator AddConsumer<TC, TM>()
-            where TC : class, IHandleMessage<TM>
-            where TM : IMessage
-        {
-            var messageType = typeof(TM);
-            if (messageType.IsAssignableTo(typeof(ICommand)) && 
-                Services.Any(sd => sd.ServiceType == typeof(IHandleMessage<TM>) ))
-                throw new TypeLoadException(
-                    $"there is already one handler registered for command type '{messageType.FullName}'");
-
-            Services.AddScoped<IHandleMessage<TM>, TC>();
-            return this;
-        }
-
+        
         public ISagaConfigurator<TS, TD> AddSaga<TS, TD>() where TS : Saga<TD> where TD : SagaState
         {
             var sagaType = typeof(TS);
             var sagaStateType = typeof(TD);
 
-            Services.AddScoped<TS>();
+            _services.AddScoped<TS>();
 
             var messageHandlerType = typeof(IHandleMessage<>).GetGenericTypeDefinition();
 
@@ -54,28 +41,26 @@ namespace Highway.Core.DependencyInjection
                 if (messageType.IsAssignableTo(typeof(ICommand)))
                 {
                     var commandHandlerType = typeof(IHandleMessage<>).MakeGenericType(messageType);
-                    if(Services.Any(sd => sd.ServiceType == commandHandlerType))
+                    if(_services.Any(sd => sd.ServiceType == commandHandlerType))
                         throw new TypeLoadException(
                             $"there is already one handler registered for command type '{messageType.FullName}'");
                 }
 
                 _typeResolver.Register(messageType, (sagaType, sagaStateType));
 
-                Services.AddTransient(i, sagaType);
+                _services.AddTransient(i, sagaType);
             }
 
-            Services.AddSingleton(typeof(ISagaStateService<,>).MakeGenericType(sagaType, sagaStateType),
+            _services.AddSingleton(typeof(ISagaStateService<,>).MakeGenericType(sagaType, sagaStateType),
                                  typeof(SagaStateService<,>).MakeGenericType(sagaType, sagaStateType));
 
-            Services.AddSingleton(typeof(ISagaRunner<,>).MakeGenericType(sagaType, sagaStateType),
+            _services.AddSingleton(typeof(ISagaRunner<,>).MakeGenericType(sagaType, sagaStateType),
                                   typeof(SagaRunner<,>).MakeGenericType(sagaType, sagaStateType));
                 
-            Services.AddSingleton(typeof(ISagaFactory<,>).MakeGenericType(sagaType, sagaStateType),
+            _services.AddSingleton(typeof(ISagaFactory<,>).MakeGenericType(sagaType, sagaStateType),
                                 typeof(DefaultSagaFactory<,>).MakeGenericType(sagaType, sagaStateType));
 
-            return new SagaConfigurator<TS, TD>(Services);
+            return new SagaConfigurator<TS, TD>(_services);
         }
-
-        public IServiceCollection Services { get; }
     }
 }

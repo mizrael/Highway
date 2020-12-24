@@ -27,7 +27,6 @@ namespace Highway.Core
             where TM : IMessage
         {
             // TODO: consider adding history of processed messages
-            // TODO: add lock on state to prevent concurrency issues
             // TODO: if a saga instance has to wait to enter the lock, check if the message was processed already
             // TODO: better retry policy (max retries?)
 

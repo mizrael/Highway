@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Highway.Core.DependencyInjection
 {
@@ -6,5 +7,7 @@ namespace Highway.Core.DependencyInjection
     {
         (Type sagaType, Type sagaStateType) Resolve<TM>() where TM : IMessage;
         void Register(Type messageType, (Type sagaType, Type sagaStateType) types);
+
+        IReadOnlyCollection<Type> GetMessageTypes();
     }
 }

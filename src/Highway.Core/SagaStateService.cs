@@ -50,8 +50,7 @@ namespace Highway.Core
         public async Task SaveAsync(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default)
         {
             await _uow.SagaStatesRepository.SaveAsync(correlationId, state, transaction, cancellationToken);
-
-            // TODO: make sure state locks don't cause issue here (eg. loopback messages cannot be processed)
+            
             var exceptions = await state.ProcessOutboxAsync(_bus, cancellationToken);
 
             await _uow.SagaStatesRepository.SaveAsync(correlationId, state, transaction, cancellationToken);

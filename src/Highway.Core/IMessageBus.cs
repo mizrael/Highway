@@ -26,7 +26,8 @@ namespace Highway.Core
             var publisher = _serviceProvider.GetService<IPublisher<TM>>();
             if (null == publisher)
                 return;
-            await publisher.PublishAsync(message, cancellationToken);
+            await publisher.PublishAsync(message, cancellationToken)
+                            .ConfigureAwait(false);
         }
     }
 }

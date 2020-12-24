@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Highway.Core;
 using Highway.Core.DependencyInjection;
 using Highway.Persistence.InMemory;
 using Highway.Persistence.Mongo;
@@ -10,12 +12,22 @@ namespace Highway.Samples.Console
 {
     class Program
     {
-        static Task Main(string[] args) =>
-            CreateHostBuilder(args).Build().RunAsync();
+        static async Task Main(string[] args)
+        {
+            var hostBuilder = CreateHostBuilder(args);
+            var host = hostBuilder.Build();
+
+            var bus = host.Services.GetRequiredService<IMessageBus>();
+            var message = new StartDummySaga(Guid.NewGuid());
+            await bus.PublishAsync(message);
+
+            await host.RunAsync();
+        }
 
         static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-            .ConfigureServices((hostContext, services) => {
+            .ConfigureServices((hostContext, services) =>
+            {
                 services.AddLogging(cfg =>
                     {
                         cfg.AddConsole();
@@ -23,14 +35,13 @@ namespace Highway.Samples.Console
                     .AddHighway(cfg =>
                     {
                         var mongoSection = hostContext.Configuration.GetSection("Mongo");
-                        
                         var mongoCfg = new MongoConfiguration(mongoSection["ConnectionString"], mongoSection["DbName"]);
-                        
+
                         cfg.AddSaga<DummySaga, DummySagaState>()
                             .UseStateFactory(msg => new DummySagaState(msg.GetCorrelationId()))
                             .UseInMemoryTransport()
                             .UseMongoPersistence(mongoCfg);
-                    }).AddHostedService<SagasBackgroundService>();
-        });
+                    });
+            });
     }
 }

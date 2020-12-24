@@ -1,4 +1,8 @@
+using System;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading.Channels;
 using Highway.Core;
 using Highway.Core.DependencyInjection;
 using Highway.Core.Persistence;
@@ -35,6 +39,16 @@ namespace Highway.Persistence.InMemory
                     continue;
 
                 var messageType = i.GetGenericArguments().First();
+
+                var rawMethod = typeof(Channel).GetMethod(nameof(Channel.CreateUnbounded), new Type[] { });
+                var method = rawMethod.MakeGenericMethod(messageType);
+                dynamic channel = method.Invoke(null, null);
+
+                sagaConfigurator.Services.AddSingleton(typeof(Channel<>).MakeGenericType(messageType), (object)channel);
+
+                sagaConfigurator.Services.AddSingleton(typeof(ChannelWriter<>).MakeGenericType(messageType), (object)channel.Writer);
+
+                sagaConfigurator.Services.AddSingleton(typeof(ChannelReader<>).MakeGenericType(messageType), (object)channel.Reader);
 
                 sagaConfigurator.Services.AddSingleton(typeof(IPublisher<>).MakeGenericType(messageType), 
                                                     typeof(InMemoryPublisher<>).MakeGenericType(messageType));

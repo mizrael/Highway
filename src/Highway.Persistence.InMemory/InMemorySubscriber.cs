@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Highway.Core;
 
@@ -9,25 +10,26 @@ namespace Highway.Persistence.InMemory
         where TM : IMessage
     {
         private readonly IMessageProcessor _messageProcessor;
+        private readonly ChannelReader<TM> _reader;
         
-        public InMemorySubscriber(IMessageProcessor messageProcessor)
+        public InMemorySubscriber(IMessageProcessor messageProcessor, ChannelReader<TM> reader)
         {
             _messageProcessor = messageProcessor ?? throw new ArgumentNullException(nameof(messageProcessor));
+            _reader = reader ?? throw new ArgumentNullException(nameof(reader));
         }
 
-        public Task StartAsync()
+        public async Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            await foreach (var message in _reader.ReadAllAsync(cancellationToken))
+            {
+                await _messageProcessor.ProcessAsync(message, cancellationToken);
+            }
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
         }
-
-        public Task StopAsync()
-        {
-            return Task.CompletedTask;
-        }
-
-        public async Task ConsumeAsync(TM message, CancellationToken cancellationToken = default)
-        {
-            await _messageProcessor.ProcessAsync(message, cancellationToken);
-        }
+        
     }
 }

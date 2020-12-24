@@ -1,11 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Highway.Core
 {
     public interface ISubscriber<TM>
         where TM : IMessage
     {
-        Task StartAsync();
-        Task StopAsync();
+        Task StartAsync(CancellationToken cancellationToken = default);
+        Task StopAsync(CancellationToken cancellationToken = default);
     }
 }

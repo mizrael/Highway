@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Highway.Core.DependencyInjection
 {
@@ -22,5 +24,7 @@ namespace Highway.Core.DependencyInjection
 
             _types.AddOrUpdate(messageType, types, (k,v) => types);
         }
+
+        public IReadOnlyCollection<Type> GetMessageTypes() => _types.Keys.ToImmutableList();
     }
 }
