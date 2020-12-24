@@ -17,5 +17,6 @@ A .NET Console app is available in the `/samples/` folder. Before running it, ma
 
 ## Roadmap
 - add RabbitMQ message transport
+- add more logging
 - add Azure ServiceBus message transport
 - add CosmosDB saga state persistence
