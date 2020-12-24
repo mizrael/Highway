@@ -19,12 +19,12 @@ namespace Highway.Persistence.Mongo
         public async Task<TD> FindByCorrelationIdAsync<TD>(Guid correlationId, ITransaction transaction = null, CancellationToken cancellationToken = default)
             where TD : SagaState
         {
-            var filter = Builders<Entities.SagaState>.Filter.Eq(s => s.Id, correlationId);
-            
             var mongoTransaction = transaction as MongoTransaction;
 
-            var cursor = await _dbContext.SagaStates.FindAsync(s => s.Id == correlationId, null, cancellationToken).ConfigureAwait(false);
-            var entity = await cursor.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            var cursor = await _dbContext.SagaStates.FindAsync(mongoTransaction?.Session, s => s.Id == correlationId, null, cancellationToken)
+                                                    .ConfigureAwait(false);
+            var entity = await cursor.FirstOrDefaultAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             if (entity is null)
                 return null;
