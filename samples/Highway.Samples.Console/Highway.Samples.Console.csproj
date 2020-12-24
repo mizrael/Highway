@@ -14,9 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Highway.Core\Highway.Core.csproj" />
-    <ProjectReference Include="..\Highway.Persistence.InMemory\Highway.Persistence.InMemory.csproj" />
-    <ProjectReference Include="..\Highway.Persistence.Mongo\Highway.Persistence.Mongo.csproj" />
+    <ProjectReference Include="..\..\src\Highway.Core\Highway.Core.csproj" />
+    <ProjectReference Include="..\..\src\Highway.Persistence.InMemory\Highway.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Highway.Persistence.Mongo\Highway.Persistence.Mongo.csproj" />
   </ItemGroup>
 
   <ItemGroup>
