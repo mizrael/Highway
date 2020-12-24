@@ -38,7 +38,7 @@ namespace Highway.Core
                     continue;
 
                 var startMethod = typesCache.GetMethod(subscriberType, nameof(ISubscriber<IMessage>.StartAsync));
-                var t = startMethod.Invoke(subscriber, new[] { (object)stoppingToken }) as Task;
+                var t = (Task)startMethod.Invoke(subscriber, new[] { (object)stoppingToken });
                 tasks.Add(t);
             }
 

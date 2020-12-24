@@ -37,6 +37,7 @@ namespace Highway.Persistence.Mongo
         public async Task SaveAsync<TD>(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default)
             where TD : SagaState
         {
+            //TODO: check why outbox messages are not serialized
             var json = System.Text.Json.JsonSerializer.Serialize(state);
             
             var stateType = typeof(TD);
