@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Highway.Persistence.Mongo", "Highway.Persistence.Mongo\Highway.Persistence.Mongo.csproj", "{FD1CCF1D-68C7-49D5-B3A2-E3D34F269B14}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Highway.Persistence.Mongo.Tests", "Highway.Persistence.Mongo.Tests\Highway.Persistence.Mongo.Tests.csproj", "{48BF1200-BAA2-48A7-B7DA-1FD0A070FF0E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{FD1CCF1D-68C7-49D5-B3A2-E3D34F269B14}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD1CCF1D-68C7-49D5-B3A2-E3D34F269B14}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD1CCF1D-68C7-49D5-B3A2-E3D34F269B14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48BF1200-BAA2-48A7-B7DA-1FD0A070FF0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48BF1200-BAA2-48A7-B7DA-1FD0A070FF0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48BF1200-BAA2-48A7-B7DA-1FD0A070FF0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48BF1200-BAA2-48A7-B7DA-1FD0A070FF0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +55,7 @@ Global
 		{1E8C0BF5-04DA-4228-9F78-C69E7EAE08F9} = {5594CC89-F905-46B2-B938-27B8050D9CA3}
 		{E7C7C0F4-CD99-4F97-A905-13EAABF10498} = {5594CC89-F905-46B2-B938-27B8050D9CA3}
 		{FD1CCF1D-68C7-49D5-B3A2-E3D34F269B14} = {5594CC89-F905-46B2-B938-27B8050D9CA3}
+		{48BF1200-BAA2-48A7-B7DA-1FD0A070FF0E} = {5594CC89-F905-46B2-B938-27B8050D9CA3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D5297242-16B4-43D7-B329-362EBCE2A5A5}

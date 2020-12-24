@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Highway.Core
 {
-    public abstract record SagaState
+    public abstract class SagaState
     {
+        [JsonProperty] //TODO: get rid of Newtonsoft.JSON dependency
         private readonly Queue<IMessage> _outbox = new Queue<IMessage>();
 
+        [JsonIgnore]
         public IReadOnlyCollection<IMessage> Outbox => _outbox;
-        
+       
         public void EnqueueMessage(IMessage message)
         {
             if (message == null)

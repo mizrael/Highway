@@ -10,7 +10,8 @@ namespace Highway.Persistence.Mongo
 
     public static class MongoSagaConfiguratorExtensions
     {
-        public static ISagaConfigurator<TS, TD> UseMongoPersistence<TS, TD>(this ISagaConfigurator<TS, TD> sagaConfigurator, MongoConfiguration config)
+        public static ISagaConfigurator<TS, TD> UseMongoPersistence<TS, TD>(
+            this ISagaConfigurator<TS, TD> sagaConfigurator, MongoConfiguration config)
             where TS : Saga<TD>
             where TD : SagaState
         {
@@ -21,10 +22,11 @@ namespace Highway.Persistence.Mongo
                     var database = client.GetDatabase(config.DbName);
                     return database;
                 })
+                .AddSingleton<ISagaStateSerializer, JsonSagaStateSerializer>()
                 .AddSingleton<IDbContext, DbContext>()
-                  .AddSingleton<IUnitOfWork, MongoUnitOfWork>()
-                  .AddSingleton(typeof(ISagaStateRepository), typeof(MongoSagaStateRepository));
+                .AddSingleton<IUnitOfWork, MongoUnitOfWork>()
+                .AddSingleton<ISagaStateRepository, MongoSagaStateRepository>();
             return sagaConfigurator;
-        }   
+        }
     }
 }

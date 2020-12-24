@@ -2,5 +2,5 @@ using System;
 
 namespace Highway.Persistence.Mongo.Entities
 {
-    public record SagaState(Guid Id, string Data, string Type, int Version);
+    public record SagaState(Guid Id, byte[] Data, string Type, int Version);
 }

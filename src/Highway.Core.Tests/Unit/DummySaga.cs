@@ -4,7 +4,15 @@ using System.Threading.Tasks;
 
 namespace Highway.Core.Tests
 {
-    public record DummySagaState(Guid Id) : SagaState;
+    public class DummySagaState : SagaState
+    {
+        public DummySagaState(Guid id)
+        {
+            Id = id;
+        }
+
+        public Guid Id { get; }
+    }
 
     public record StartDummySaga(Guid Id) : ICommand
     {

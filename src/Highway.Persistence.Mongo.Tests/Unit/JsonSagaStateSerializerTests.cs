@@ -1,0 +1,55 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Highway.Core;
+using Highway.Persistence.Mongo;
+using Xunit;
+
+namespace Highway.Persistence.Mongo.Tests.Unit
+{
+    public class JsonSagaStateSerializerTests
+    {
+        [Fact]
+        public async Task SerializeAsync_should_serialize_state()
+        {
+            var state = new DummyState(Guid.NewGuid(), "foo", 42);
+            var sut = new JsonSagaStateSerializer();
+            var serialized = await sut.SerializeAsync(state);
+            serialized.Should().NotBeNull();
+
+            var deserializedState = System.Text.Json.JsonSerializer.Deserialize<DummyState>(serialized);
+            deserializedState.Should().NotBeNull();
+            deserializedState.Id.Should().Be(state.Id);
+            deserializedState.Bar.Should().Be(state.Bar);
+            deserializedState.Foo.Should().Be(state.Foo);
+        }
+
+        [Fact]
+        public async Task SerializeAsync_should_serialize_outbox()
+        {
+            var state = new DummyState(Guid.NewGuid(), "foo", 42);
+            state.EnqueueMessage(DummyMessage.New());
+            state.EnqueueMessage(DummyMessage.New());
+            state.EnqueueMessage(DummyMessage.New());
+
+            var sut = new JsonSagaStateSerializer();
+            var serialized = await sut.SerializeAsync(state);
+            serialized.Should().NotBeNull();
+
+            var deserializedState = await sut.DeserializeAsync<DummyState>(serialized);
+            deserializedState.Should().NotBeNull();
+            deserializedState.Outbox.Should().NotBeNullOrEmpty()
+                .And.HaveCount(3);
+        }
+    }
+    
+    public record DummyMessage(Guid Id) : IMessage
+    {
+        public Guid GetCorrelationId() => this.Id;
+        public static DummyMessage New() => new DummyMessage(Guid.NewGuid());
+    }
+}

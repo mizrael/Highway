@@ -10,10 +10,12 @@ namespace Highway.Persistence.Mongo
     public class MongoSagaStateRepository : ISagaStateRepository
     {
         private readonly IDbContext _dbContext;
-        
-        public MongoSagaStateRepository(IDbContext dbContext)
+        private readonly ISagaStateSerializer _sagaStateSerializer;
+
+        public MongoSagaStateRepository(IDbContext dbContext, ISagaStateSerializer sagaStateSerializer)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _sagaStateSerializer = sagaStateSerializer ?? throw new ArgumentNullException(nameof(sagaStateSerializer));
         }
 
         public async Task<TD> FindByCorrelationIdAsync<TD>(Guid correlationId, ITransaction transaction = null, CancellationToken cancellationToken = default)
@@ -28,24 +30,24 @@ namespace Highway.Persistence.Mongo
 
             if (entity is null)
                 return null;
+            
+            var state = await _sagaStateSerializer.DeserializeAsync<TD>(entity.Data, cancellationToken);
 
-            // can't deserialize a BsonDocument to <TD> so we have to use JSON instead
-            var state = System.Text.Json.JsonSerializer.Deserialize<TD>(entity.Data);
             return state;
         }
 
         public async Task SaveAsync<TD>(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default)
             where TD : SagaState
         {
-            //TODO: check why outbox messages are not serialized
-            var json = System.Text.Json.JsonSerializer.Serialize(state);
+            // can't deserialize a BsonDocument to <TD> so we have to use JSON instead
+            var serializedState = await _sagaStateSerializer.SerializeAsync(state, cancellationToken);
             
             var stateType = typeof(TD);
 
             var update = Builders<Entities.SagaState>.Update
                 .Set(s => s.Id, correlationId)
                 .Set(s => s.Type, stateType.FullName)
-                .Set(s => s.Data, json)
+                .Set(s => s.Data, serializedState)
                 .Inc(s => s.Version, 1);
 
             var options = new UpdateOptions(){
