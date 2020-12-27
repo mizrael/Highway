@@ -27,8 +27,9 @@ namespace Highway.Core.Tests
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 
-            await Assert.ThrowsAsync<StateCreationException>(() =>
-                sut.GetAsync(messageContext, null, CancellationToken.None));
+            var ex = await Assert.ThrowsAsync<StateCreationException>(() =>
+                             sut.GetAsync(messageContext, CancellationToken.None));
+            ex.Message.Should().Contain("unable to create saga state instance");
         }
 
         [Fact]
@@ -47,7 +48,7 @@ namespace Highway.Core.Tests
             messageContext.Message.Returns(message);
 
             var ex = await Assert.ThrowsAsync<StateCreationException>(() =>
-                sut.GetAsync(messageContext, null, CancellationToken.None));
+                         sut.GetAsync(messageContext, CancellationToken.None));
             ex.Message.Should().Contain("saga cannot be started by message");
         }
 
@@ -65,6 +66,9 @@ namespace Highway.Core.Tests
                 .Returns(expectedState);
 
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
+            sagaStateRepo.LockAsync(message.GetCorrelationId(), expectedState,  Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult((expectedState, Guid.NewGuid())));
+            
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
             uow.SagaStatesRepository.Returns(sagaStateRepo);
             
@@ -72,8 +76,8 @@ namespace Highway.Core.Tests
 
             var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, publisher);
 
-            var state = await sut.GetAsync(messageContext, null, CancellationToken.None);
-            state.Should().Be(expectedState);
+            var result = await sut.GetAsync(messageContext, CancellationToken.None);
+            result.state.Should().Be(expectedState);
         }
 
     }

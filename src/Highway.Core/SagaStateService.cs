@@ -23,37 +23,34 @@ namespace Highway.Core
             _bus = publisher ?? throw new ArgumentNullException(nameof(publisher));
         }
 
-        public async Task<TD> GetAsync<TM>(IMessageContext<TM> messageContext,
-                                            ITransaction transaction = null,
-                                            CancellationToken cancellationToken = default) where TM : IMessage
+        public async Task<(TD state, Guid lockId)> GetAsync<TM>(IMessageContext<TM> messageContext,
+            CancellationToken cancellationToken = default) where TM : IMessage
         {
             var correlationId = messageContext.Message.GetCorrelationId();
-            var state = await _uow.SagaStatesRepository.FindByCorrelationIdAsync<TD>(correlationId, transaction, cancellationToken);
 
-            if (null == state) 
-            {
-                // if state is null, we're probably starting a new saga.
-                // We have to check if the current message can
-                // actually start the specified saga or not
-                if (!typeof(IStartedBy<TM>).IsAssignableFrom(typeof(TS)))
-                    throw new StateCreationException(typeof(TD), $"saga cannot be started by message '{typeof(TM).FullName}'");
+            var defaultState = _sagaStateFactory.Create(messageContext.Message);
 
-                state = _sagaStateFactory.Create(messageContext.Message);
-                await _uow.SagaStatesRepository.SaveAsync(correlationId, state, transaction, cancellationToken);
-            }
+            var result = await _uow.SagaStatesRepository.LockAsync(correlationId, defaultState, cancellationToken);
 
-            if (null == state)
-                throw new StateCreationException(typeof(TD), "unable to create saga state instance");
-            return state;
+            if (null != result.state) 
+                return result;
+            
+            // if state is null, we're probably starting a new saga.
+            // We have to check if the current message can
+            // actually start the specified saga or not
+            if (!typeof(IStartedBy<TM>).IsAssignableFrom(typeof(TS)))
+                throw new StateCreationException(typeof(TD), $"saga cannot be started by message '{typeof(TM).FullName}'");
+
+            throw new StateCreationException(typeof(TD), "unable to create saga state instance");
         }
         
-        public async Task SaveAsync(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default)
+        public async Task SaveAsync(TD state, Guid lockId, CancellationToken cancellationToken = default)
         {
-            await _uow.SagaStatesRepository.SaveAsync(correlationId, state, transaction, cancellationToken);
+            await _uow.SagaStatesRepository.UpdateAsync(state, lockId, false, cancellationToken);
             
             var exceptions = await state.ProcessOutboxAsync(_bus, cancellationToken);
 
-            await _uow.SagaStatesRepository.SaveAsync(correlationId, state, transaction, cancellationToken);
+            await _uow.SagaStatesRepository.UpdateAsync(state, lockId, true, cancellationToken);
 
             if (exceptions.Any())
                 throw new AggregateException(exceptions);

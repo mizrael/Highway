@@ -2,64 +2,108 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Highway.Core;
+using Highway.Core.Exceptions;
 using Highway.Core.Persistence;
 using MongoDB.Driver;
 
 namespace Highway.Persistence.Mongo
 {
+    public record MongoSagaStateRepositoryOptions(TimeSpan LockMaxDuration);
+    
     public class MongoSagaStateRepository : ISagaStateRepository
     {
         private readonly IDbContext _dbContext;
         private readonly ISagaStateSerializer _sagaStateSerializer;
+        private readonly MongoSagaStateRepositoryOptions _options;
 
-        public MongoSagaStateRepository(IDbContext dbContext, ISagaStateSerializer sagaStateSerializer)
+        public MongoSagaStateRepository(IDbContext dbContext, ISagaStateSerializer sagaStateSerializer, MongoSagaStateRepositoryOptions options)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _sagaStateSerializer = sagaStateSerializer ?? throw new ArgumentNullException(nameof(sagaStateSerializer));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
-        public async Task<TD> FindByCorrelationIdAsync<TD>(Guid correlationId, ITransaction transaction = null, CancellationToken cancellationToken = default)
+        public async Task<(TD state, Guid lockId)> LockAsync<TD>(Guid id, TD newEntity = null, CancellationToken cancellationToken = default)
             where TD : SagaState
         {
-            var mongoTransaction = transaction as MongoTransaction;
+            var filterBuilder = Builders<Entities.SagaState>.Filter;
+            var filter = filterBuilder.And(
+                filterBuilder.Eq(e => e.Id, id),
+                filterBuilder.Or(
+                    filterBuilder.Eq(e => e.LockId, null),
+                    filterBuilder.Lt(e => e.LockTime, DateTime.UtcNow - _options.LockMaxDuration)
+                )
+            );
+            var update = Builders<Entities.SagaState>.Update
+                .Set(e => e.LockId, Guid.NewGuid())
+                .Set(e => e.LockTime, DateTime.UtcNow);
 
-            var cursor = await _dbContext.SagaStates.FindAsync(mongoTransaction?.Session, s => s.Id == correlationId, null, cancellationToken)
-                                                    .ConfigureAwait(false);
-            var entity = await cursor.FirstOrDefaultAsync(cancellationToken)
-                .ConfigureAwait(false);
+            if (newEntity is not null)
+            {
+                var serializedState = await _sagaStateSerializer.SerializeAsync(newEntity, cancellationToken);
 
-            if (entity is null)
-                return null;
-            
-            var state = await _sagaStateSerializer.DeserializeAsync<TD>(entity.Data, cancellationToken);
+                update = update.SetOnInsert(e => e.Id, id)
+                    .SetOnInsert(e => e.Data, serializedState);
+            }
 
-            return state;
+            var options = new FindOneAndUpdateOptions<Entities.SagaState>()
+            {
+                IsUpsert = true,
+                ReturnDocument = ReturnDocument.After
+            };
+
+            try
+            {
+                var entity = await _dbContext.SagaStates
+                    .FindOneAndUpdateAsync(filter, update, options, cancellationToken)
+                    .ConfigureAwait(false);
+                if (entity is null)
+                    return (null, Guid.Empty);
+
+                // can't deserialize a BsonDocument to <TD> so we have to use JSON instead
+                var state = await _sagaStateSerializer.DeserializeAsync<TD>(entity.Data, cancellationToken);
+                return (state, entity.LockId.Value);
+            }
+            catch (MongoCommandException e) when (e.Code == 11000 && e.CodeName == "DuplicateKey")
+            {
+                throw new LockException($"saga state '{id}' is already locked");
+            }
         }
-
-        public async Task SaveAsync<TD>(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default)
+     
+        public async Task UpdateAsync<TD>(TD state, Guid lockId, bool releaseLock = false, CancellationToken cancellationToken = default)
             where TD : SagaState
         {
-            // can't deserialize a BsonDocument to <TD> so we have to use JSON instead
+            if (state == null) 
+                throw new ArgumentNullException(nameof(state));
+
             var serializedState = await _sagaStateSerializer.SerializeAsync(state, cancellationToken);
-            
             var stateType = typeof(TD);
 
+            var filter = Builders<Entities.SagaState>.Filter.And(
+                Builders<Entities.SagaState>.Filter.Eq(e => e.Id, state.Id),
+                Builders<Entities.SagaState>.Filter.Eq(e => e.LockId, lockId)
+            );
+
             var update = Builders<Entities.SagaState>.Update
-                .Set(s => s.Id, correlationId)
-                .Set(s => s.Type, stateType.FullName)
-                .Set(s => s.Data, serializedState)
-                .Inc(s => s.Version, 1);
+                .Set(e => e.Data, serializedState)
+                .Set(s => s.Type, stateType.FullName);
+            if (releaseLock)
+                update = update.Set(e => e.LockId, null)
+                                .Set(e => e.LockTime, null);
 
             var options = new UpdateOptions(){
                 IsUpsert = true
             };
 
-            var mongoTransaction = transaction as MongoTransaction;
-            
-            await _dbContext.SagaStates.UpdateOneAsync(mongoTransaction?.Session, 
-                    s => s.Id == correlationId, update, options, 
-                    cancellationToken)
+            var result = await _dbContext.SagaStates.UpdateOneAsync(filter, update, options, cancellationToken)
                 .ConfigureAwait(false);
+            if (result is null || result.ModifiedCount != 1)
+            {
+                if(releaseLock)
+                    throw new LockException($"unable to release lock on item '{state.Id}'");
+                else
+                    throw new Exception($"unable to update item '{state.Id}'");
+            }
         }
     }
 }

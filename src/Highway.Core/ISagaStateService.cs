@@ -9,10 +9,9 @@ namespace Highway.Core
         where TS : Saga<TD> 
         where TD : SagaState
     {
-        Task<TD> GetAsync<TM>(IMessageContext<TM> messageContext,
-                              ITransaction transaction = null,
+        Task<(TD state, Guid lockId)> GetAsync<TM>(IMessageContext<TM> messageContext,
                               CancellationToken cancellationToken = default) where TM : IMessage;
 
-        Task SaveAsync(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default);
+        Task SaveAsync(TD state, Guid lockId, CancellationToken cancellationToken = default);
     }
 }

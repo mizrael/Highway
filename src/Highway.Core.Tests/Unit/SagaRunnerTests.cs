@@ -27,8 +27,8 @@ namespace Highway.Core.Tests
                 .Returns(transaction);
             
             var state = new DummySagaState(message.GetCorrelationId());
-            sagaStateService.GetAsync(messageContext, Arg.Any<ITransaction>(), Arg.Any<CancellationToken>())
-                .Returns(state);
+            sagaStateService.GetAsync(messageContext, Arg.Any<CancellationToken>())
+                .Returns((state, Guid.NewGuid()));
             
             var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateService, uow);
 
@@ -46,8 +46,8 @@ namespace Highway.Core.Tests
             var sagaStateService = NSubstitute.Substitute.For<ISagaStateService<DummySaga, DummySagaState>>();
 
             var state = new DummySagaState(message.GetCorrelationId());
-            sagaStateService.GetAsync(messageContext, Arg.Any<ITransaction>(), Arg.Any<CancellationToken>())
-                .Returns(state);
+            sagaStateService.GetAsync(messageContext, Arg.Any<CancellationToken>())
+                .Returns((state, Guid.NewGuid()));
 
             var saga = NSubstitute.Substitute.ForPartsOf<DummySaga>();
             saga.When(s => s.HandleAsync(Arg.Any<IMessageContext<StartDummySaga>>(), Arg.Any<CancellationToken>()))

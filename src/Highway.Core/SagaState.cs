@@ -12,6 +12,13 @@ namespace Highway.Core
         [JsonProperty] //TODO: get rid of Newtonsoft.JSON dependency
         private readonly Queue<IMessage> _outbox = new Queue<IMessage>();
 
+        protected SagaState(Guid id)
+        {
+            Id = id;
+        }
+
+        public Guid Id { get; }
+
         [JsonIgnore]
         public IReadOnlyCollection<IMessage> Outbox => _outbox;
        

@@ -6,12 +6,9 @@ namespace Highway.Core.Tests
 {
     public class DummySagaState : SagaState
     {
-        public DummySagaState(Guid id)
+        public DummySagaState(Guid id) : base(id)
         {
-            Id = id;
         }
-
-        public Guid Id { get; }
     }
 
     public record StartDummySaga(Guid Id) : ICommand

@@ -28,44 +28,37 @@ namespace Highway.Core
         {
             // TODO: consider adding history of processed messages
             // TODO: if a saga instance has to wait to enter the lock, check if the message was processed already
-            // TODO: better retry policy (max retries?)
-
+            
             var done = false;
             var random = new Random();
-            while(!done)
+            TD state = null;
+            Guid lockId = Guid.Empty;
+            while (!done) // TODO: better retry policy (max retries? Polly?)
             {
-                var transaction = await _unitOfWork.StartTransactionAsync(cancellationToken);
-               
                 try
                 {
-                    var state = await _sagaStateService.GetAsync(messageContext, transaction, cancellationToken);
+                    (state, lockId) = await _sagaStateService.GetAsync(messageContext, cancellationToken);
 
-                    var saga = _sagaFactory.Create(state);
-                    if (null == saga)
-                        throw new SagaNotFoundException($"unable to create Saga of type '{typeof(TS).FullName}'");
-
-                    if (saga is not IHandleMessage<TM> handler)
-                        throw new ConsumerNotFoundException(typeof(TM));
-
-                    await handler.HandleAsync(messageContext, cancellationToken);
-
-                    var correlationId = messageContext.Message.GetCorrelationId();
-                    await _sagaStateService.SaveAsync(correlationId, state, transaction, cancellationToken);
-
-                    await transaction.CommitAsync(cancellationToken);
                     done = true;
                 }
-                catch(Exception ex) //TODO: filter exception
+                catch (LockException)
                 {
-                    await transaction.RollbackAsync(cancellationToken);
-
-                    if (ex is SagaNotFoundException || ex is ConsumerNotFoundException)
-                        throw;
-                    
                     await Task.Delay(TimeSpan.FromMilliseconds(random.Next(1, 10)), cancellationToken).ConfigureAwait(false);
                 }
             }
-        }
+            
+            var saga = _sagaFactory.Create(state);
+            if (null == saga)
+                throw new SagaNotFoundException($"unable to create Saga of type '{typeof(TS).FullName}'");
 
+            if (saga is not IHandleMessage<TM> handler)
+                throw new ConsumerNotFoundException(typeof(TM));
+
+            //TODO: add configurable retry policy
+            await handler.HandleAsync(messageContext, cancellationToken);
+
+            await _sagaStateService.SaveAsync(state, lockId, cancellationToken);
+
+        }
     }
 }

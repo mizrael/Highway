@@ -6,7 +6,7 @@ namespace Highway.Core.Persistence
 {
     public interface ISagaStateRepository
     {
-        Task<TD> FindByCorrelationIdAsync<TD>(Guid correlationId, ITransaction transaction = null, CancellationToken cancellationToken = default) where TD : SagaState;
-        Task SaveAsync<TD>(Guid correlationId, TD state, ITransaction transaction = null, CancellationToken cancellationToken = default) where TD : SagaState;
+        Task<(TD state, Guid lockId)> LockAsync<TD>(Guid id, TD newEntity = null, CancellationToken cancellationToken = default) where TD : SagaState;
+        Task UpdateAsync<TD>(TD state, Guid lockId, bool releaseLock = false, CancellationToken cancellationToken = default) where TD : SagaState;
     }
 }

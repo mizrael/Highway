@@ -10,7 +10,8 @@ namespace Highway.Persistence.Mongo
     {
         private readonly IMongoDatabase _db;
 
-        private static readonly IBsonSerializer guidSerializer = new GuidSerializer(GuidRepresentation.Standard);
+        private static readonly IBsonSerializer<Guid> guidSerializer = new GuidSerializer(GuidRepresentation.Standard);
+        private static readonly IBsonSerializer nullableGuidSerializer = new NullableSerializer<Guid>(guidSerializer);
 
         public DbContext(IMongoDatabase db)
         {
@@ -29,8 +30,10 @@ namespace Highway.Persistence.Mongo
                     mapper.MapIdField(c => c.Id).SetSerializer(guidSerializer);
                     mapper.MapProperty(c => c.Data);
                     mapper.MapProperty(c => c.Type);
-                    mapper.MapProperty(c => c.Version);
-                    mapper.MapCreator(s => new Entities.SagaState(s.Id, s.Data, s.Type, s.Version));
+                    mapper.MapProperty(c => c.LockId).SetSerializer(nullableGuidSerializer)
+                                                     .SetDefaultValue(() => null);
+                    mapper.MapProperty(c => c.LockTime).SetDefaultValue(() => null);
+                    mapper.MapCreator(s => new Entities.SagaState(s.Id, s.Data, s.Type, s.LockId, s.LockTime));
                 });
         }
      

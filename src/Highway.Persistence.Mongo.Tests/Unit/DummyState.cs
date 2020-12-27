@@ -5,14 +5,12 @@ namespace Highway.Persistence.Mongo.Tests.Unit
 {
     public class DummyState : SagaState
     {
-        public DummyState(Guid id, string foo, int bar)
+        public DummyState(Guid id, string foo, int bar) : base(id)
         {
-            Id = id;
             Foo = foo;
             Bar = bar;
         }
-
-        public Guid Id { get; }
+        
         public string Foo { get; }
         public int Bar { get; }
     }
