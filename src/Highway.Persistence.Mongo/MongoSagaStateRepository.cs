@@ -100,9 +100,9 @@ namespace Highway.Persistence.Mongo
             if (result is null || result.ModifiedCount != 1)
             {
                 if(releaseLock)
-                    throw new LockException($"unable to release lock on item '{state.Id}'");
+                    throw new LockException($"unable to release lock on saga state '{state.Id}'");
                 else
-                    throw new Exception($"unable to update item '{state.Id}'");
+                    throw new Exception($"unable to update saga state '{state.Id}'");
             }
         }
     }
