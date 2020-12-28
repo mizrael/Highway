@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -6,6 +7,8 @@ using Xunit;
 
 namespace Highway.Persistence.Mongo.Tests.Integration
 {
+    [Category("Integration")]
+    [Trait("Category", "Integration")]
     public class MongoSagaStateRepositoryTests : IClassFixture<DbFixture>
     {
         private readonly DbFixture _fixture;
