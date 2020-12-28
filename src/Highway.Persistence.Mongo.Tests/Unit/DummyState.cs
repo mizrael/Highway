@@ -13,5 +13,7 @@ namespace Highway.Persistence.Mongo.Tests.Unit
         
         public string Foo { get; }
         public int Bar { get; }
+
+        public static DummyState New() => new DummyState(Guid.NewGuid(), "lorem ipsum", 42);
     }
 }
