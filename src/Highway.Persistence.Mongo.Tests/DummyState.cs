@@ -1,7 +1,7 @@
 ﻿using System;
 using Highway.Core;
 
-namespace Highway.Persistence.Mongo.Tests.Unit
+namespace Highway.Persistence.Mongo.Tests
 {
     public class DummyState : SagaState
     {

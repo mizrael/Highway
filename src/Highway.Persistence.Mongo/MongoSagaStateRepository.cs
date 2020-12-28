@@ -41,8 +41,10 @@ namespace Highway.Persistence.Mongo
             if (newEntity is not null)
             {
                 var serializedState = await _sagaStateSerializer.SerializeAsync(newEntity, cancellationToken);
-
+                var stateType = typeof(TD);
+                
                 update = update.SetOnInsert(e => e.Id, id)
+                    .SetOnInsert(e => e.Type, stateType.FullName)
                     .SetOnInsert(e => e.Data, serializedState);
             }
 
@@ -83,10 +85,10 @@ namespace Highway.Persistence.Mongo
                 Builders<Entities.SagaState>.Filter.Eq(e => e.Id, state.Id),
                 Builders<Entities.SagaState>.Filter.Eq(e => e.LockId, lockId)
             );
-
+            
             var update = Builders<Entities.SagaState>.Update
-                .Set(e => e.Data, serializedState)
-                .Set(s => s.Type, stateType.FullName);
+                  .Set(e => e.Data, serializedState)
+                  .Set(s => s.Type, stateType.FullName);
             if (releaseLock)
                 update = update.Set(e => e.LockId, null)
                                 .Set(e => e.LockTime, null);

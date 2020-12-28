@@ -27,6 +27,8 @@ namespace Highway.Persistence.Mongo
             if (!BsonClassMap.IsClassMapRegistered(typeof(Entities.SagaState)))
                 BsonClassMap.RegisterClassMap<Entities.SagaState>(mapper =>
                 {
+                    mapper.AutoMap();
+                    
                     mapper.MapIdField(c => c.Id).SetSerializer(guidSerializer);
                     mapper.MapProperty(c => c.Data);
                     mapper.MapProperty(c => c.Type);
