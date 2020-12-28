@@ -6,7 +6,9 @@ using MongoDB.Driver;
 
 namespace Highway.Persistence.Mongo
 {
-    public record MongoConfiguration(string ConnectionString, string DbName);
+    public record MongoConfiguration(string ConnectionString, 
+                                     string DbName, 
+                                     MongoSagaStateRepositoryOptions RepositoryOptions);
 
     public static class MongoSagaConfiguratorExtensions
     {
@@ -25,6 +27,7 @@ namespace Highway.Persistence.Mongo
                 .AddSingleton<ISagaStateSerializer, JsonSagaStateSerializer>()
                 .AddSingleton<IDbContext, DbContext>()
                 .AddSingleton<IUnitOfWork, MongoUnitOfWork>()
+                .AddSingleton(config.RepositoryOptions)
                 .AddSingleton<ISagaStateRepository, MongoSagaStateRepository>();
             return sagaConfigurator;
         }

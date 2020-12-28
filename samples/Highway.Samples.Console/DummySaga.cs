@@ -7,7 +7,9 @@ using Microsoft.Extensions.Logging;
 namespace Highway.Samples.Console
 {
 
-    public record DummySagaState(Guid Id) : SagaState;
+    public class DummySagaState : SagaState{
+        public DummySagaState(Guid id) : base(id){}
+    }
 
     public record StartDummySaga(Guid Id) : ICommand
     {

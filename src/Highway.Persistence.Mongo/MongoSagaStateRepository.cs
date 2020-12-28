@@ -8,7 +8,9 @@ using MongoDB.Driver;
 
 namespace Highway.Persistence.Mongo
 {
-    public record MongoSagaStateRepositoryOptions(TimeSpan LockMaxDuration);
+    public record MongoSagaStateRepositoryOptions(TimeSpan LockMaxDuration){
+        public static readonly MongoSagaStateRepositoryOptions Default = new MongoSagaStateRepositoryOptions(TimeSpan.FromMinutes(1));
+    }
     
     public class MongoSagaStateRepository : ISagaStateRepository
     {

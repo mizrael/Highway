@@ -35,7 +35,9 @@ namespace Highway.Samples.Console
                     .AddHighway(cfg =>
                     {
                         var mongoSection = hostContext.Configuration.GetSection("Mongo");
-                        var mongoCfg = new MongoConfiguration(mongoSection["ConnectionString"], mongoSection["DbName"]);
+                        var mongoCfg = new MongoConfiguration(mongoSection["ConnectionString"], 
+                                                              mongoSection["DbName"],
+                                                            MongoSagaStateRepositoryOptions.Default);
 
                         cfg.AddSaga<DummySaga, DummySagaState>()
                             .UseStateFactory(msg => new DummySagaState(msg.GetCorrelationId()))

@@ -8,15 +8,5 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_REPLICA_SET_NAME: highway
     ports:
       - 27017:27017    
-    command: ["--replSet", "highway", "--bind_ip_all"]  
-    healthcheck:
-      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u root -p password --quiet) -eq 1
-      interval: 10s
-      start_period: 30s
-    volumes:        
-        - ./.docker/mongodb/initdb.d/:/docker-entrypoint-initdb.d/
-        - ./.docker/mongodb/data/db/:/data/db/
-        - ./.docker/mongodb/data/log/:/var/log/mongodb/
