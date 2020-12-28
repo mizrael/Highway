@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Highway.Core.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

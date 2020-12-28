@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Highway.Core.DependencyInjection
 {
     public interface IBusConfigurator
