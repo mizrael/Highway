@@ -11,14 +11,12 @@ namespace Highway.Samples.Console
         public DummySagaState(Guid id) : base(id){}
     }
 
-    public record StartDummySaga(Guid Id) : ICommand
+    public record StartDummySaga(Guid Id, Guid CorrelationId) : ICommand
     {
-        public Guid CorrelationId => this.Id;
     }
 
-    public record DummySagaStarted(Guid Id) : IEvent
+    public record DummySagaStarted(Guid Id, Guid CorrelationId) : IEvent
     {
-        public Guid CorrelationId => this.Id;
     }
     
     public class DummySaga :
@@ -37,7 +35,7 @@ namespace Highway.Samples.Console
         {
             _logger.LogInformation($"starting saga '{context.Message.CorrelationId}'...");
             
-            var started = new DummySagaStarted(context.Message.Id);
+            var started = new DummySagaStarted(context.Message.Id, context.Message.CorrelationId);
             this.Publish(started);
         }
 
