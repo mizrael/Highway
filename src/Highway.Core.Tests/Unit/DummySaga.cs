@@ -13,12 +13,12 @@ namespace Highway.Core.Tests
 
     public record StartDummySaga(Guid Id) : ICommand
     {
-        public Guid GetCorrelationId() => this.Id;
+        public Guid CorrelationId => this.Id;
     }
 
     public record DummySagaStarted(Guid Id) : IEvent
     {
-        public Guid GetCorrelationId() => this.Id;
+        public Guid CorrelationId => this.Id;
     }
 
     public class DummySaga : 

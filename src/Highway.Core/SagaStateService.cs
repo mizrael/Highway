@@ -26,7 +26,7 @@ namespace Highway.Core
         public async Task<(TD state, Guid lockId)> GetAsync<TM>(IMessageContext<TM> messageContext,
             CancellationToken cancellationToken = default) where TM : IMessage
         {
-            var correlationId = messageContext.Message.GetCorrelationId();
+            var correlationId = messageContext.Message.CorrelationId;
 
             var defaultState = _sagaStateFactory.Create(messageContext.Message);
 

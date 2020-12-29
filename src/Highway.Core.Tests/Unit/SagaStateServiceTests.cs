@@ -66,7 +66,7 @@ namespace Highway.Core.Tests
                 .Returns(expectedState);
 
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
-            sagaStateRepo.LockAsync(message.GetCorrelationId(), expectedState,  Arg.Any<CancellationToken>())
+            sagaStateRepo.LockAsync(message.CorrelationId, expectedState,  Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult((expectedState, Guid.NewGuid())));
             
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();

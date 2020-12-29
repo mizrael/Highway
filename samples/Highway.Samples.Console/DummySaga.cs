@@ -13,13 +13,14 @@ namespace Highway.Samples.Console
 
     public record StartDummySaga(Guid Id) : ICommand
     {
-        public Guid GetCorrelationId() => this.Id;
+        public Guid CorrelationId => this.Id;
     }
 
     public record DummySagaStarted(Guid Id) : IEvent
     {
-        public Guid GetCorrelationId() => this.Id;
+        public Guid CorrelationId => this.Id;
     }
+    
     public class DummySaga :
         Saga<DummySagaState>,
         IStartedBy<StartDummySaga>,
@@ -34,7 +35,7 @@ namespace Highway.Samples.Console
         
         public async Task HandleAsync(IMessageContext<StartDummySaga> context, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation($"starting saga '{context.Message.GetCorrelationId()}'...");
+            _logger.LogInformation($"starting saga '{context.Message.CorrelationId}'...");
             
             var started = new DummySagaStarted(context.Message.Id);
             this.Publish(started);
@@ -42,7 +43,7 @@ namespace Highway.Samples.Console
 
         public async Task HandleAsync(IMessageContext<DummySagaStarted> context, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation($"saga '{context.Message.GetCorrelationId()}' started!");
+            _logger.LogInformation($"saga '{context.Message.CorrelationId}' started!");
         }
     }
 }

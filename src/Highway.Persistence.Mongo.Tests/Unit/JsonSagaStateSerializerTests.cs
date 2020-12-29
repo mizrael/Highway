@@ -44,7 +44,7 @@ namespace Highway.Persistence.Mongo.Tests.Unit
     
     public record DummyMessage(Guid Id) : IMessage
     {
-        public Guid GetCorrelationId() => this.Id;
+        public Guid CorrelationId => this.Id;
         public static DummyMessage New() => new DummyMessage(Guid.NewGuid());
     }
 }

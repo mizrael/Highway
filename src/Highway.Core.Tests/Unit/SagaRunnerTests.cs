@@ -26,7 +26,7 @@ namespace Highway.Core.Tests
             uow.StartTransactionAsync(Arg.Any<CancellationToken>())
                 .Returns(transaction);
             
-            var state = new DummySagaState(message.GetCorrelationId());
+            var state = new DummySagaState(message.CorrelationId);
             sagaStateService.GetAsync(messageContext, Arg.Any<CancellationToken>())
                 .Returns((state, Guid.NewGuid()));
             
@@ -45,7 +45,7 @@ namespace Highway.Core.Tests
 
             var sagaStateService = NSubstitute.Substitute.For<ISagaStateService<DummySaga, DummySagaState>>();
 
-            var state = new DummySagaState(message.GetCorrelationId());
+            var state = new DummySagaState(message.CorrelationId);
             sagaStateService.GetAsync(messageContext, Arg.Any<CancellationToken>())
                 .Returns((state, Guid.NewGuid()));
 

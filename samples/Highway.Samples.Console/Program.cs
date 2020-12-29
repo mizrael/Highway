@@ -39,9 +39,15 @@ namespace Highway.Samples.Console
                                                               mongoSection["DbName"],
                                                             MongoSagaStateRepositoryOptions.Default);
 
+                        var rabbitSection = hostContext.Configuration.GetSection("Rabbit");
+                        var rabbitCfg = new RabbitConfiguration(rabbitSection["HostName"], 
+                            rabbitSection["UserName"],
+                            rabbitSection["Password"]);
+
                         cfg.AddSaga<DummySaga, DummySagaState>()
-                            .UseStateFactory(msg => new DummySagaState(msg.GetCorrelationId()))
-                            .UseInMemoryTransport()
+                            .UseStateFactory(msg => new DummySagaState(msg.CorrelationId))
+                            //.UseInMemoryTransport()
+                            .UseRabbitMQTransport(rabbitCfg)
                             .UseMongoPersistence(mongoCfg);
                     });
             });

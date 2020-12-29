@@ -4,6 +4,7 @@ namespace Highway.Core
 {
     public interface IMessage
     {
-        Guid GetCorrelationId();
+        Guid Id { get; }
+        Guid CorrelationId { get; }
     }
 }
