@@ -18,10 +18,13 @@ namespace Highway.Samples.Console
             var host = hostBuilder.Build();
 
             var bus = host.Services.GetRequiredService<IMessageBus>();
-            var message = new StartDummySaga(Guid.NewGuid());
-            await bus.PublishAsync(message);
+            var message = new StartDummySaga(Guid.NewGuid(), Guid.NewGuid());
 
-            await host.RunAsync();
+            await Task.WhenAll(new[]
+            {
+                host.RunAsync(),
+                bus.PublishAsync(message)
+            });
         }
 
         static IHostBuilder CreateHostBuilder(string[] args) =>

@@ -17,6 +17,7 @@ namespace Highway.Persistence.Mongo
         private readonly IDbContext _dbContext;
         private readonly ISagaStateSerializer _sagaStateSerializer;
         private readonly MongoSagaStateRepositoryOptions _options;
+        private readonly Random _random = new Random();
 
         public MongoSagaStateRepository(IDbContext dbContext, ISagaStateSerializer sagaStateSerializer, MongoSagaStateRepositoryOptions options)
         {
@@ -101,9 +102,11 @@ namespace Highway.Persistence.Mongo
 
             var result = await _dbContext.SagaStates.UpdateOneAsync(filter, update, options, cancellationToken)
                 .ConfigureAwait(false);
-            if (result is null || result.ModifiedCount != 1)
+
+            var filterFailed = result.MatchedCount == 0;
+            if (filterFailed)
             {
-                if(releaseLock)
+                if (releaseLock)
                     throw new LockException($"unable to release lock on saga state '{state.Id}'");
                 else
                     throw new Exception($"unable to update saga state '{state.Id}'");
