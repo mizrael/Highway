@@ -43,6 +43,7 @@ namespace Highway.Core
                 }
                 catch (LockException)
                 {
+                    //TODO: logging
                     await Task.Delay(TimeSpan.FromMilliseconds(random.Next(1, 10)), cancellationToken).ConfigureAwait(false);
                 }
             }

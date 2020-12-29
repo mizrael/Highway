@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,11 +8,15 @@ using Newtonsoft.Json;
 
 namespace Highway.Core
 {
+    
     public abstract class SagaState
     {
         [JsonProperty] //TODO: get rid of Newtonsoft.JSON dependency
         private readonly Queue<IMessage> _outbox = new Queue<IMessage>();
 
+        [JsonIgnore] private readonly HashSet<Guid> _outboxIds = new HashSet<Guid>();
+        
+        
         protected SagaState(Guid id)
         {
             Id = id;
@@ -26,7 +31,12 @@ namespace Highway.Core
         {
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
+
+            if (_outboxIds.Contains(message.Id))
+                throw new ArgumentException($"message '{message.Id}' was already enqueued", nameof(message));
+            
             _outbox.Enqueue(message);
+            _outboxIds.Add(message.Id);
         }
 
         public async Task<IEnumerable<Exception>> ProcessOutboxAsync(IMessageBus bus, CancellationToken cancellationToken = default)
@@ -47,11 +57,13 @@ namespace Highway.Core
                     exceptions.Add(e);
                 }
             }
-            
+
+            _outboxIds.Clear();
+
             while (failedMessages.Any())
             {
-                var failed = failedMessages.Dequeue();
-                _outbox.Enqueue(failed);
+                var message = failedMessages.Dequeue();
+                EnqueueMessage(message);
             }
 
             return exceptions;
