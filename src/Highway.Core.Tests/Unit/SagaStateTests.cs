@@ -56,6 +56,7 @@ namespace Highway.Core.Tests.Unit
                     .PublishAsync(msg, CancellationToken.None);
 
             state.Outbox.Should().BeEmpty();
+            state.ProcessedMessages.Should().HaveCount(messages.Length);
         }
 
         [Fact]
@@ -63,7 +64,7 @@ namespace Highway.Core.Tests.Unit
         {
             var state = new DummySagaState(Guid.NewGuid());
             
-            var messages = Enumerable.Repeat(1, 5)
+            var messages = Enumerable.Repeat(1, 3)
                 .Select(i => new StartDummySaga(Guid.NewGuid()))
                 .ToArray();
             foreach (var msg in messages)
@@ -90,6 +91,8 @@ namespace Highway.Core.Tests.Unit
                     .PublishAsync(msg, CancellationToken.None);
 
             state.Outbox.Should().HaveCount(failedMessage.Length);
+
+            state.ProcessedMessages.Should().HaveCount(messages.Length);
         }
     }
 }

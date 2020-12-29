@@ -26,7 +26,6 @@ namespace Highway.Core
         public async Task RunAsync<TM>(IMessageContext<TM> messageContext, CancellationToken cancellationToken)
             where TM : IMessage
         {
-            // TODO: consider adding history of processed messages
             // TODO: if a saga instance has to wait to enter the lock, check if the message was processed already
             
             var done = false;

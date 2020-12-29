@@ -8,15 +8,19 @@ using Newtonsoft.Json;
 
 namespace Highway.Core
 {
-    
+    //TODO: get rid of Newtonsoft.JSON dependency
     public abstract class SagaState
     {
-        [JsonProperty] //TODO: get rid of Newtonsoft.JSON dependency
+        [JsonProperty] 
         private readonly Queue<IMessage> _outbox = new Queue<IMessage>();
+        
+        [JsonIgnore] 
+        private readonly HashSet<Guid> _outboxIds = new HashSet<Guid>();
 
-        [JsonIgnore] private readonly HashSet<Guid> _outboxIds = new HashSet<Guid>();
-        
-        
+        [JsonProperty]
+        private readonly List<ProcessedMessage> _processedMessages = new();
+
+
         protected SagaState(Guid id)
         {
             Id = id;
@@ -26,7 +30,10 @@ namespace Highway.Core
 
         [JsonIgnore]
         public IReadOnlyCollection<IMessage> Outbox => _outbox;
-       
+
+        [JsonIgnore]
+        public IReadOnlyCollection<ProcessedMessage> ProcessedMessages => _processedMessages;
+
         public void EnqueueMessage(IMessage message)
         {
             if (message == null)
@@ -50,6 +57,7 @@ namespace Highway.Core
                 try
                 {
                     await bus.PublishAsync((dynamic)message, cancellationToken);
+                    _processedMessages.Add(new ProcessedMessage(message, DateTime.UtcNow));
                 }
                 catch (Exception e)
                 {
@@ -69,4 +77,6 @@ namespace Highway.Core
             return exceptions; //TODO: evaluate returning a proper Error class instead of Exception
         }
     }
+
+    public record ProcessedMessage(IMessage message, DateTime When);
 }
