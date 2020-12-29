@@ -103,8 +103,8 @@ namespace Highway.Persistence.Mongo
             var result = await _dbContext.SagaStates.UpdateOneAsync(filter, update, options, cancellationToken)
                 .ConfigureAwait(false);
 
-            var filterFailed = result.MatchedCount == 0;
-            if (filterFailed)
+            var failed = (result is null || result.MatchedCount == 0);
+            if (failed)
             {
                 if (releaseLock)
                     throw new LockException($"unable to release lock on saga state '{state.Id}'");
