@@ -6,6 +6,6 @@ namespace Highway.Transport.RabbitMQ
 {
     public interface IMessageResolver
     {
-        IMessage Resolve(IBasicProperties basicProperties, ReadOnlyMemory<byte> body);
+        TM Resolve<TM>(IBasicProperties basicProperties, ReadOnlyMemory<byte> body) where TM : IMessage;
     }
 }

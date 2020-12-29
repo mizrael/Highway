@@ -17,7 +17,8 @@ namespace Highway.Persistence.InMemory
     {
         private static bool _initialized = false;
         
-        public static ISagaConfigurator<TS, TD> UseRabbitMQTransport<TS, TD>(this ISagaConfigurator<TS, TD> sagaConfigurator, RabbitConfiguration config)
+        public static ISagaConfigurator<TS, TD> UseRabbitMQTransport<TS, TD>(this ISagaConfigurator<TS, TD> sagaConfigurator, 
+            RabbitConfiguration config)
             where TS : Saga<TD>
             where TD : SagaState
         {
@@ -42,13 +43,23 @@ namespace Highway.Persistence.InMemory
                                                     typeof(RabbitSubscriber<>).MakeGenericType(messageType));
             }
 
+            //TODO: this won't work when multiple sagas are registered
+            sagaConfigurator.Services.AddSingleton<IMessageResolver>(ctx =>
+            {
+                var decoder = ctx.GetRequiredService<IDecoder>();
+                var assemblies = new[]
+                {
+                    typeof(TS).Assembly
+                };
+                return new MessageResolver(decoder, assemblies);
+            });
+
             if (!_initialized)
             {
                 var encoder = new JsonEncoder();
                 sagaConfigurator.Services.AddSingleton<IEncoder>(encoder);
                 sagaConfigurator.Services.AddSingleton<IDecoder>(encoder);
-
-                sagaConfigurator.Services.AddSingleton<IMessageResolver, MessageResolver>();
+                
                 sagaConfigurator.Services.AddSingleton<IQueueReferenceFactory, QueueReferenceFactory>();
 
                 sagaConfigurator.Services.AddSingleton<IConnectionFactory>(ctx =>
@@ -58,7 +69,8 @@ namespace Highway.Persistence.InMemory
                         HostName = config.HostName,
                         UserName = config.UserName,
                         Password = config.Password,
-                        Port = AmqpTcpEndpoint.UseDefaultPort
+                        Port = AmqpTcpEndpoint.UseDefaultPort,
+                        DispatchConsumersAsync = true
                     };
                     return connectionFactory;
                 });

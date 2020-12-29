@@ -17,7 +17,8 @@ namespace Highway.Transport.RabbitMQ
             _assemblies = assemblies ?? throw new ArgumentNullException(nameof(encoder));
         }
 
-        public IMessage Resolve(IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
+        public TM Resolve<TM>(IBasicProperties basicProperties, ReadOnlyMemory<byte> body) 
+            where TM : IMessage
         {
             if (basicProperties is null)
                 throw new ArgumentNullException(nameof(basicProperties));
@@ -38,7 +39,7 @@ namespace Highway.Transport.RabbitMQ
                 throw new TypeLoadException($"unable to resolve type '{messageTypeName}' ");
 
             var decodedObj = _decoder.Decode(body, dataType);
-            if (decodedObj is not IMessage message)
+            if (decodedObj is not TM message)
                 throw new ArgumentException($"type '{messageTypeName}' is not a valid message");
             return message;
         }

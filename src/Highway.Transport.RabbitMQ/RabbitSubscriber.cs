@@ -15,17 +15,20 @@ namespace Highway.Transport.RabbitMQ
         private readonly IBusConnection _connection;
         private readonly QueueReferences _queueReferences;
         private readonly IMessageResolver _messageResolver;
+        private readonly IMessageProcessor _messageProcessor;
         private readonly ILogger<RabbitSubscriber<TM>> _logger;
         private IModel _channel;
 
         public RabbitSubscriber(IBusConnection connection,
             IQueueReferenceFactory queueReferenceFactory,
             IMessageResolver messageResolver,
+            IMessageProcessor messageProcessor,
             ILogger<RabbitSubscriber<TM>> logger)
         {
             if (queueReferenceFactory == null) throw new ArgumentNullException(nameof(queueReferenceFactory));
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _messageProcessor = messageProcessor ?? throw new ArgumentNullException(nameof(messageProcessor));
             _messageResolver = messageResolver ?? throw new ArgumentNullException(nameof(messageResolver));
             _queueReferences = queueReferenceFactory.Create<TM>();
         }
@@ -43,7 +46,7 @@ namespace Highway.Transport.RabbitMQ
                 autoDelete: false,
                 arguments: null);
             _channel.QueueBind(_queueReferences.DeadLetterQueue, _queueReferences.DeadLetterExchangeName, routingKey: string.Empty, arguments: null);
-
+      
             _channel.ExchangeDeclare(exchange: _queueReferences.ExchangeName, type: ExchangeType.Fanout);
             _channel.QueueDeclare(queue: _queueReferences.QueueName,
                 durable: false,
@@ -95,10 +98,10 @@ namespace Highway.Transport.RabbitMQ
             var consumer = sender as IBasicConsumer;
             var channel = consumer?.Model ?? _channel;
 
-            IMessage message;
+            TM message;
             try
             {
-                message = _messageResolver.Resolve(eventArgs.BasicProperties, eventArgs.Body);
+                message = _messageResolver.Resolve<TM>(eventArgs.BasicProperties, eventArgs.Body);
             }
             catch (Exception ex)
             {
@@ -107,10 +110,14 @@ namespace Highway.Transport.RabbitMQ
                 channel.BasicReject(eventArgs.DeliveryTag, requeue: false);
                 return;
             }
+            
+            _logger.LogDebug("received message '{MessageId}' from Exchange '{ExchangeName}'. Processing...", message.Id, _queueReferences.ExchangeName);
 
             try
             {
-                await this.OnMessage(this, new MessageReceived(message));
+                //TODO: provide valid cancellation token
+                await _messageProcessor.ProcessAsync(message, CancellationToken.None);
+                
                 channel.BasicAck(eventArgs.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
@@ -126,9 +133,7 @@ namespace Highway.Transport.RabbitMQ
                     channel.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: true);
             }
         }
-
-        public event AsyncEventHandler<MessageReceived> OnMessage;
-
+        
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             InitChannel();
