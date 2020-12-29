@@ -66,7 +66,7 @@ namespace Highway.Core
                 EnqueueMessage(message);
             }
 
-            return exceptions;
+            return exceptions; //TODO: evaluate returning a proper Error class instead of Exception
         }
     }
 }
