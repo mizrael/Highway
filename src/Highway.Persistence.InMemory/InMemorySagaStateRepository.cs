@@ -18,10 +18,10 @@ namespace Highway.Persistence.InMemory
             _items = new ConcurrentDictionary<Guid, (SagaState state, Guid? lockId)>();
         }
 
-        public async Task<(TD state, Guid lockId)> LockAsync<TD>(Guid id, TD newEntity = default, CancellationToken cancellationToken = default)
+        public async Task<(TD state, Guid lockId)> LockAsync<TD>(Guid correlationId, TD newEntity = default, CancellationToken cancellationToken = default)
             where TD : SagaState
         {
-            var (state, lockId) = _items.AddOrUpdate(id, k => (newEntity, Guid.NewGuid()), (k, v) => throw new LockException($"saga state '{id}' is already locked"));
+            var (state, lockId) = _items.AddOrUpdate(correlationId, k => (newEntity, Guid.NewGuid()), (k, v) => throw new LockException($"saga state '{correlationId}' is already locked"));
 
             return (state as TD, lockId.Value);
         }
@@ -37,7 +37,7 @@ namespace Highway.Persistence.InMemory
             try
             {
                 if (!_items.ContainsKey(state.Id))
-                    throw new ArgumentOutOfRangeException(nameof(SagaState.Id), $"invalid state id '{state.Id}'");
+                    throw new ArgumentOutOfRangeException(nameof(SagaState.Id), $"invalid state correlationId '{state.Id}'");
                 var stored = _items[state.Id];
                 if (stored.lockId != lockId)
                     throw new LockException($"unable to release lock on saga state '{state.Id}'");

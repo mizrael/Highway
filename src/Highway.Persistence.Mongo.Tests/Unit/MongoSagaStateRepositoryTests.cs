@@ -6,6 +6,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using Xunit;
 
 namespace Highway.Persistence.Mongo.Tests.Unit
@@ -20,7 +21,7 @@ namespace Highway.Persistence.Mongo.Tests.Unit
             var jsonState = Newtonsoft.Json.JsonConvert.SerializeObject(newState);
             var stateData = Encoding.UTF8.GetBytes(jsonState);
 
-            var entity = new Entities.SagaState(newState.Id, stateData, typeof(DummyState).FullName, Guid.NewGuid(), DateTime.UtcNow);
+            var entity = new Entities.SagaState(ObjectId.GenerateNewId(), newState.Id, typeof(DummyState).FullName, stateData, Guid.NewGuid(), DateTime.UtcNow);
 
             var coll = NSubstitute.Substitute.For<IMongoCollection<Entities.SagaState>>();
             coll.FindOneAndUpdateAsync(Arg.Any<FilterDefinition<Entities.SagaState>>(),

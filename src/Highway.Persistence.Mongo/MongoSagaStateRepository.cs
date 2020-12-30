@@ -18,8 +18,7 @@ namespace Highway.Persistence.Mongo
         private readonly IDbContext _dbContext;
         private readonly ISagaStateSerializer _sagaStateSerializer;
         private readonly MongoSagaStateRepositoryOptions _options;
-        private readonly Random _random = new Random();
-
+        
         public MongoSagaStateRepository(IDbContext dbContext, ISagaStateSerializer sagaStateSerializer, MongoSagaStateRepositoryOptions options)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
@@ -27,12 +26,15 @@ namespace Highway.Persistence.Mongo
             _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
-        public async Task<(TD state, Guid lockId)> LockAsync<TD>(Guid id, TD newEntity = null, CancellationToken cancellationToken = default)
+        public async Task<(TD state, Guid lockId)> LockAsync<TD>(Guid correlationId, TD newEntity = null, CancellationToken cancellationToken = default)
             where TD : SagaState
         {
+            var stateType = typeof(TD);
+            
             var filterBuilder = Builders<Entities.SagaState>.Filter;
             var filter = filterBuilder.And(
-                filterBuilder.Eq(e => e.Id, id),
+                filterBuilder.Eq(e => e.CorrelationId, correlationId),
+                filterBuilder.Eq(e => e.Type, stateType.FullName),
                 filterBuilder.Or(
                     filterBuilder.Eq(e => e.LockId, null),
                     filterBuilder.Lt(e => e.LockTime, DateTime.UtcNow - _options.LockMaxDuration)
@@ -45,9 +47,8 @@ namespace Highway.Persistence.Mongo
             if (newEntity is not null)
             {
                 var serializedState = await _sagaStateSerializer.SerializeAsync(newEntity, cancellationToken);
-                var stateType = typeof(TD);
-
-                update = update.SetOnInsert(e => e.Id, id)
+                
+                update = update.SetOnInsert(e => e.CorrelationId, correlationId)
                     .SetOnInsert(e => e.Type, stateType.FullName)
                     .SetOnInsert(e => e.Data, serializedState);
             }
@@ -72,7 +73,7 @@ namespace Highway.Persistence.Mongo
             }
             catch (MongoCommandException e) when (e.Code == 11000 && e.CodeName == "DuplicateKey")
             {
-                throw new LockException($"saga state '{id}' is already locked");
+                throw new LockException($"saga state '{correlationId}' is already locked");
             }
         }
 
@@ -85,14 +86,15 @@ namespace Highway.Persistence.Mongo
             var serializedState = await _sagaStateSerializer.SerializeAsync(state, cancellationToken);
             var stateType = typeof(TD);
 
-            var filter = Builders<Entities.SagaState>.Filter.And(
-                Builders<Entities.SagaState>.Filter.Eq(e => e.Id, state.Id),
-                Builders<Entities.SagaState>.Filter.Eq(e => e.LockId, lockId)
+            var filterBuilder = Builders<Entities.SagaState>.Filter;
+            var filter = filterBuilder.And(
+                filterBuilder.Eq(e => e.CorrelationId, state.Id),
+                filterBuilder.Eq(e => e.Type, stateType.FullName),
+                filterBuilder.Eq(e => e.LockId, lockId)
             );
 
             var update = Builders<Entities.SagaState>.Update
-                  .Set(e => e.Data, serializedState)
-                  .Set(s => s.Type, stateType.FullName);
+                  .Set(e => e.Data, serializedState);
             if (releaseLock)
                 update = update.Set(e => e.LockId, null)
                                 .Set(e => e.LockTime, null);
