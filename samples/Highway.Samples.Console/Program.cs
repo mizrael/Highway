@@ -4,6 +4,7 @@ using Highway.Core;
 using Highway.Core.DependencyInjection;
 using Highway.Persistence.InMemory;
 using Highway.Persistence.Mongo;
+using Highway.Samples.Console.Sagas;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ namespace Highway.Samples.Console
             var host = hostBuilder.Build();
 
             var bus = host.Services.GetRequiredService<IMessageBus>();
-            var message = new StartDummySaga(Guid.NewGuid(), Guid.NewGuid());
+            var message = new StartParentSaga(Guid.NewGuid(), Guid.NewGuid());
 
             await Task.WhenAll(new[]
             {
@@ -47,9 +48,13 @@ namespace Highway.Samples.Console
                             rabbitSection["UserName"],
                             rabbitSection["Password"]);
 
-                        cfg.AddSaga<DummySaga, DummySagaState>()
-                            .UseStateFactory(msg => new DummySagaState(msg.CorrelationId))
-                            //.UseInMemoryTransport()
+                        cfg.AddSaga<ParentSaga, ParentSagaState>()
+                            .UseStateFactory(msg => new ParentSagaState(msg.CorrelationId))
+                            .UseRabbitMQTransport(rabbitCfg)
+                            .UseMongoPersistence(mongoCfg);
+
+                        cfg.AddSaga<ChildSaga, ChildSagaState>()
+                            .UseStateFactory(msg => new ChildSagaState(msg.CorrelationId))
                             .UseRabbitMQTransport(rabbitCfg)
                             .UseMongoPersistence(mongoCfg);
                     });
