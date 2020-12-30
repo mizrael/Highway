@@ -6,17 +6,15 @@ Highway is a distributed saga management library, written in C# with .NET Core 5
 It is intended to be reliable, fast, easy to use, configurable and extensible.
 
 ### Message Transport
-Only in-memory transport is available for now.
+Only RabbitMQ and In-memory transport are available for now.
 
 ### State Persistence
-
-As of now, saga state persistence is available on MongoDB only.
+Saga state persistence is available on MongoDB and in-memory only.
 
 ## Samples
 A .NET Console app is available in the `/samples/` folder. Before running it, make sure to spin-up the required infrastructure using the provided docker-compose configuration.
 
 ## Roadmap
-- add RabbitMQ message transport
 - add more logging
 - add Azure ServiceBus message transport
 - add CosmosDB saga state persistence
