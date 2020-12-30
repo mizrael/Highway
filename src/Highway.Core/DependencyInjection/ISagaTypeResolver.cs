@@ -9,5 +9,6 @@ namespace Highway.Core.DependencyInjection
         void Register(Type messageType, (Type sagaType, Type sagaStateType) types);
 
         IReadOnlyCollection<Type> GetMessageTypes();
+        IReadOnlyCollection<Type> GetSagaTypes();
     }
 }

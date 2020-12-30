@@ -1,15 +1,15 @@
+using Highway.Core.Persistence;
+using MongoDB.Driver;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Highway.Core.Persistence;
-using MongoDB.Driver;
 
 namespace Highway.Persistence.Mongo
 {
     internal class MongoUnitOfWork : IUnitOfWork
     {
         private readonly MongoClient _client;
-        
+
         public MongoUnitOfWork(MongoClient client, ISagaStateRepository sagaStatesRepository)
         {
             SagaStatesRepository = sagaStatesRepository ?? throw new ArgumentNullException(nameof(sagaStatesRepository));

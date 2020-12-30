@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Highway.Core;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Highway.Persistence.Mongo.Tests.Unit
@@ -41,10 +41,10 @@ namespace Highway.Persistence.Mongo.Tests.Unit
                 .And.HaveCount(3);
         }
     }
-    
+
     public record DummyMessage(Guid Id) : IMessage
     {
-        public Guid GetCorrelationId() => this.Id;
+        public Guid CorrelationId => this.Id;
         public static DummyMessage New() => new DummyMessage(Guid.NewGuid());
     }
 }

@@ -4,6 +4,7 @@ using Highway.Core;
 using Highway.Core.DependencyInjection;
 using Highway.Persistence.InMemory;
 using Highway.Persistence.Mongo;
+using Highway.Samples.Console.Sagas;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,10 +19,13 @@ namespace Highway.Samples.Console
             var host = hostBuilder.Build();
 
             var bus = host.Services.GetRequiredService<IMessageBus>();
-            var message = new StartDummySaga(Guid.NewGuid());
-            await bus.PublishAsync(message);
+            var message = new StartParentSaga(Guid.NewGuid(), Guid.NewGuid());
 
-            await host.RunAsync();
+            await Task.WhenAll(new[]
+            {
+                host.RunAsync(),
+                bus.PublishAsync(message)
+            });
         }
 
         static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -39,9 +43,19 @@ namespace Highway.Samples.Console
                                                               mongoSection["DbName"],
                                                             MongoSagaStateRepositoryOptions.Default);
 
-                        cfg.AddSaga<DummySaga, DummySagaState>()
-                            .UseStateFactory(msg => new DummySagaState(msg.GetCorrelationId()))
-                            .UseInMemoryTransport()
+                        var rabbitSection = hostContext.Configuration.GetSection("Rabbit");
+                        var rabbitCfg = new RabbitConfiguration(rabbitSection["HostName"], 
+                            rabbitSection["UserName"],
+                            rabbitSection["Password"]);
+
+                        cfg.AddSaga<ParentSaga, ParentSagaState>()
+                            .UseStateFactory(msg => new ParentSagaState(msg.CorrelationId))
+                            .UseRabbitMQTransport(rabbitCfg)
+                            .UseMongoPersistence(mongoCfg);
+
+                        cfg.AddSaga<ChildSaga, ChildSagaState>()
+                            .UseStateFactory(msg => new ChildSagaState(msg.CorrelationId))
+                            .UseRabbitMQTransport(rabbitCfg)
                             .UseMongoPersistence(mongoCfg);
                     });
             });

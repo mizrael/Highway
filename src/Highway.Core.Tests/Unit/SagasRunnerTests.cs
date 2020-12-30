@@ -1,8 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using Highway.Core.DependencyInjection;
 using Highway.Core.Exceptions;
 using NSubstitute;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Highway.Core.Tests
@@ -18,7 +18,7 @@ namespace Highway.Core.Tests
 
             var sut = new SagasRunner(sp, stateTypeResolver, typesCache);
 
-            var message = new StartDummySaga(Guid.NewGuid());
+            var message = StartDummySaga.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 
@@ -32,14 +32,14 @@ namespace Highway.Core.Tests
             var types = (typeof(DummySaga), typeof(DummySagaState));
             stateTypeResolver.Resolve<StartDummySaga>()
                 .Returns(types);
-            
+
             var sp = NSubstitute.Substitute.For<IServiceProvider>();
 
             var typesCache = NSubstitute.Substitute.For<ITypesCache>();
 
             var sut = new SagasRunner(sp, stateTypeResolver, typesCache);
 
-            var message = new StartDummySaga(Guid.NewGuid());
+            var message = StartDummySaga.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 

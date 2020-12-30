@@ -6,8 +6,8 @@ using MongoDB.Driver;
 
 namespace Highway.Persistence.Mongo
 {
-    public record MongoConfiguration(string ConnectionString, 
-                                     string DbName, 
+    public record MongoConfiguration(string ConnectionString,
+                                     string DbName,
                                      MongoSagaStateRepositoryOptions RepositoryOptions);
 
     public static class MongoSagaConfiguratorExtensions

@@ -1,8 +1,8 @@
+using Highway.Core.DependencyInjection;
+using Highway.Core.Exceptions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Highway.Core.DependencyInjection;
-using Highway.Core.Exceptions;
 
 namespace Highway.Core
 {
@@ -11,7 +11,7 @@ namespace Highway.Core
         private readonly IServiceProvider _serviceProvider;
         private readonly ISagaTypeResolver _stateTypeResolver;
         private readonly ITypesCache _typesCache;
-        
+
         public SagasRunner(IServiceProvider serviceProvider, ISagaTypeResolver stateTypeResolver, ITypesCache typesCache)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -22,7 +22,7 @@ namespace Highway.Core
         public async Task RunAsync<TM>(IMessageContext<TM> messageContext, CancellationToken cancellationToken = default)
             where TM : IMessage
         {
-            if (messageContext == null) 
+            if (messageContext == null)
                 throw new ArgumentNullException(nameof(messageContext));
 
             var types = _stateTypeResolver.Resolve<TM>();

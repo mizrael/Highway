@@ -1,6 +1,6 @@
-﻿using System;
-using Highway.Core.DependencyInjection;
+﻿using Highway.Core.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using Xunit;
 
 namespace Highway.Core.Tests

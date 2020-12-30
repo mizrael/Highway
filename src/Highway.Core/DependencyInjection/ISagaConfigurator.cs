@@ -1,11 +1,11 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System;
 
 namespace Highway.Core.DependencyInjection
 {
     public interface ISagaConfigurator<TS, in TD>
-        where TS : Saga<TD> 
+        where TS : Saga<TD>
         where TD : SagaState
     {
         IServiceCollection Services { get; }
@@ -13,7 +13,7 @@ namespace Highway.Core.DependencyInjection
     }
 
     internal class SagaConfigurator<TS, TD> : ISagaConfigurator<TS, TD>
-        where TS : Saga<TD> 
+        where TS : Saga<TD>
         where TD : SagaState
     {
         public SagaConfigurator(IServiceCollection services)
@@ -22,7 +22,7 @@ namespace Highway.Core.DependencyInjection
         }
 
         public IServiceCollection Services { get; }
-        
+
         public ISagaConfigurator<TS, TD> UseStateFactory(Func<IMessage, TD> stateFactory)
         {
             var stateType = typeof(TD);
@@ -30,7 +30,7 @@ namespace Highway.Core.DependencyInjection
 
             var descriptor = ServiceDescriptor.Singleton(typeof(ISagaStateFactory<>).MakeGenericType(stateType), factory);
             this.Services.Replace(descriptor);
-            
+
             return this;
         }
     }

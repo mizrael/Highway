@@ -1,10 +1,10 @@
-using System;
-using System.Linq;
-using System.Threading.Channels;
 using Highway.Core;
 using Highway.Core.DependencyInjection;
 using Highway.Core.Persistence;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Linq;
+using System.Threading.Channels;
 
 namespace Highway.Persistence.InMemory
 {
@@ -16,7 +16,7 @@ namespace Highway.Persistence.InMemory
         {
             sagaConfigurator.Services.AddSingleton(typeof(ISagaStateRepository), typeof(InMemorySagaStateRepository));
             sagaConfigurator.Services.AddSingleton<IUnitOfWork, InMemoryUnitOfWork>();
-            
+
             return sagaConfigurator;
         }
 
@@ -48,7 +48,7 @@ namespace Highway.Persistence.InMemory
 
                 sagaConfigurator.Services.AddSingleton(typeof(ChannelReader<>).MakeGenericType(messageType), (object)channel.Reader);
 
-                sagaConfigurator.Services.AddSingleton(typeof(IPublisher<>).MakeGenericType(messageType), 
+                sagaConfigurator.Services.AddSingleton(typeof(IPublisher<>).MakeGenericType(messageType),
                                                     typeof(InMemoryPublisher<>).MakeGenericType(messageType));
 
                 sagaConfigurator.Services.AddSingleton(typeof(ISubscriber<>).MakeGenericType(messageType),

@@ -18,7 +18,7 @@ namespace Highway.Core
         public async Task ProcessAsync<TM>(TM message, CancellationToken cancellationToken = default)
             where TM : IMessage
         {
-            if (message == null) 
+            if (message == null)
                 throw new ArgumentNullException(nameof(message));
 
             var messageContext = _messageContextFactory.Create(message);
