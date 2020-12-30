@@ -18,7 +18,7 @@ namespace Highway.Core.Tests
 
             var sut = new SagasRunner(sp, stateTypeResolver, typesCache);
 
-            var message = new StartDummySaga(Guid.NewGuid());
+            var message = StartDummySaga.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 
@@ -39,7 +39,7 @@ namespace Highway.Core.Tests
 
             var sut = new SagasRunner(sp, stateTypeResolver, typesCache);
 
-            var message = new StartDummySaga(Guid.NewGuid());
+            var message = StartDummySaga.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 

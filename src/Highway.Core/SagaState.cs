@@ -77,5 +77,5 @@ namespace Highway.Core
         }
     }
 
-    public record ProcessedMessage(IMessage message, DateTime When);
+    public record ProcessedMessage(IMessage Message, DateTime When);
 }
