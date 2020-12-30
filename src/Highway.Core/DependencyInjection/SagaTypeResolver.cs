@@ -2,12 +2,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Highway.Core.DependencyInjection
 {
+    //TODO: rename
     public class SagaTypeResolver : ISagaTypeResolver
     {
-        private readonly ConcurrentDictionary<Type, (Type, Type)> _types = new ConcurrentDictionary<Type, (Type, Type)>();
+        private readonly ConcurrentDictionary<Type, (Type sagaType, Type sagaStateType)> _types = new ();
 
         public (Type sagaType, Type sagaStateType) Resolve<TM>() where TM : IMessage
         {
@@ -26,5 +28,6 @@ namespace Highway.Core.DependencyInjection
         }
 
         public IReadOnlyCollection<Type> GetMessageTypes() => _types.Keys.ToImmutableList();
+        public IReadOnlyCollection<Type> GetSagaTypes() => _types.Values.Select(v => v.sagaStateType).ToImmutableList();
     }
 }

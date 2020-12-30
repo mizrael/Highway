@@ -1,7 +1,6 @@
 ﻿using Highway.Core;
 using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Highway.Transport.RabbitMQ
@@ -9,12 +8,12 @@ namespace Highway.Transport.RabbitMQ
     public class MessageParser : IMessageParser
     {
         private readonly IDecoder _decoder;
-        private readonly IEnumerable<System.Reflection.Assembly> _assemblies;
-
-        public MessageParser(IDecoder encoder, IEnumerable<System.Reflection.Assembly> assemblies)
+        private readonly ITypeResolver _typeResolver;
+        
+        public MessageParser(IDecoder encoder, ITypeResolver typeResolver)
         {
             _decoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
-            _assemblies = assemblies ?? throw new ArgumentNullException(nameof(encoder));
+            _typeResolver = typeResolver ?? throw new ArgumentNullException(nameof(typeResolver));
         }
 
         public TM Resolve<TM>(IBasicProperties basicProperties, ReadOnlyMemory<byte> body)
@@ -32,11 +31,7 @@ namespace Highway.Transport.RabbitMQ
 
             var messageTypeName = Encoding.UTF8.GetString(messageTypeBytes);
 
-            Type dataType = null;
-            foreach (var assembly in _assemblies)
-                dataType = assembly.GetType(messageTypeName, throwOnError: false, ignoreCase: true);
-            if (null == dataType)
-                throw new TypeLoadException($"unable to resolve type '{messageTypeName}' ");
+            var dataType = _typeResolver.Resolve(messageTypeName);
 
             var decodedObj = _decoder.Decode(body, dataType);
             if (decodedObj is not TM message)

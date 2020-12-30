@@ -12,6 +12,17 @@ namespace Highway.Core.DependencyInjection
             services.AddSingleton<ISagaTypeResolver>(stateTypeResolver)
                 .AddSingleton<ISagasRunner, SagasRunner>()
                 .AddSingleton<ITypesCache, TypesCache>()
+                .AddSingleton<ITypeResolver>(ctx =>
+                {
+                    var resolver = new TypeResolver();
+
+                    var sagaTypeResolver = ctx.GetRequiredService<ISagaTypeResolver>();
+                    var sagaTypes = sagaTypeResolver.GetSagaTypes();
+                    foreach(var t in sagaTypes)
+                        resolver.Register(t);
+                    
+                    return resolver;
+                })
                 .AddSingleton<IMessageContextFactory, DefaultMessageContextFactory>()
                 .AddSingleton<IMessageBus, DefaultMessageBus>()
                 .AddSingleton<IMessageProcessor, MessageProcessor>();

@@ -33,22 +33,11 @@ namespace Highway.Persistence.InMemory
                 var messageType = i.GetGenericArguments().First();
 
                 sagaConfigurator.Services.AddSingleton(typeof(IPublisher<>).MakeGenericType(messageType),
-                                                    typeof(RabbitPublisher<>).MakeGenericType(messageType));
+                                                       typeof(RabbitPublisher<>).MakeGenericType(messageType));
 
                 sagaConfigurator.Services.AddSingleton(typeof(ISubscriber<>).MakeGenericType(messageType),
-                                                    typeof(RabbitSubscriber<>).MakeGenericType(messageType));
+                                                       typeof(RabbitSubscriber<>).MakeGenericType(messageType));
             }
-
-            //TODO: this won't work when multiple sagas are registered
-            sagaConfigurator.Services.AddSingleton<IMessageParser>(ctx =>
-            {
-                var decoder = ctx.GetRequiredService<IDecoder>();
-                var assemblies = new[]
-                {
-                    typeof(TS).Assembly
-                };
-                return new MessageParser(decoder, assemblies);
-            });
 
             if (!_initialized)
             {
@@ -57,6 +46,7 @@ namespace Highway.Persistence.InMemory
                 sagaConfigurator.Services.AddSingleton<IDecoder>(encoder);
 
                 sagaConfigurator.Services.AddSingleton<IQueueReferenceFactory, QueueReferenceFactory>();
+                sagaConfigurator.Services.AddSingleton<IMessageParser, MessageParser>();
 
                 sagaConfigurator.Services.AddSingleton<IConnectionFactory>(ctx =>
                 {

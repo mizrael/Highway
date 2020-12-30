@@ -17,7 +17,8 @@ namespace Highway.Core.DependencyInjection
             _typeResolver = typeResolver ?? throw new ArgumentNullException(nameof(typeResolver));
         }
 
-        public ISagaConfigurator<TS, TD> AddSaga<TS, TD>() where TS : Saga<TD> where TD : SagaState
+        public ISagaConfigurator<TS, TD> AddSaga<TS, TD>() 
+            where TS : Saga<TD> where TD : SagaState
         {
             var sagaType = typeof(TS);
             var sagaStateType = typeof(TD);
