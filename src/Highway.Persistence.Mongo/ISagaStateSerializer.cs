@@ -1,6 +1,6 @@
+using Highway.Core;
 using System.Threading;
 using System.Threading.Tasks;
-using Highway.Core;
 
 namespace Highway.Persistence.Mongo
 {

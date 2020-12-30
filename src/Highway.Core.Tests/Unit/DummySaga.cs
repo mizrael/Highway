@@ -11,27 +11,27 @@ namespace Highway.Core.Tests
         }
     }
 
-    public record StartDummySaga(Guid Id) : ICommand
+    public record StartDummySaga(Guid Id, Guid CorrelationId) : ICommand
     {
-        public Guid GetCorrelationId() => this.Id;
+        public static StartDummySaga New() => new StartDummySaga(Guid.NewGuid(), Guid.NewGuid());
     }
 
-    public record DummySagaStarted(Guid Id) : IEvent
+    public record DummySagaStarted(Guid Id, Guid CorrelationId) : ICommand
     {
-        public Guid GetCorrelationId() => this.Id;
+        public static DummySagaStarted New() => new DummySagaStarted(Guid.NewGuid(), Guid.NewGuid());
     }
 
-    public class DummySaga : 
+    public class DummySaga :
         Saga<DummySagaState>,
         IStartedBy<StartDummySaga>,
         IHandleMessage<DummySagaStarted>
     {
         public virtual async Task HandleAsync(IMessageContext<StartDummySaga> context, CancellationToken cancellationToken = default)
         {
-            var started = new DummySagaStarted(context.Message.Id);
+            var started = new DummySagaStarted(Guid.NewGuid(), context.Message.CorrelationId);
             this.Publish(started);
         }
-        
+
         public virtual Task HandleAsync(IMessageContext<DummySagaStarted> context, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();

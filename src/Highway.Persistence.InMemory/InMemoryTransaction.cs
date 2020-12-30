@@ -1,6 +1,6 @@
+using Highway.Core.Persistence;
 using System.Threading;
 using System.Threading.Tasks;
-using Highway.Core.Persistence;
 
 namespace Highway.Persistence.InMemory
 {

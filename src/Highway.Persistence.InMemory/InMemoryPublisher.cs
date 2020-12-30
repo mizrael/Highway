@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Highway.Core;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Highway.Core;
 
 [assembly: InternalsVisibleTo("Highway.Persistence.InMemory.Tests")]
 namespace Highway.Persistence.InMemory
@@ -12,7 +12,7 @@ namespace Highway.Persistence.InMemory
         where TM : IMessage
     {
         private readonly ChannelWriter<TM> _writer;
-        
+
         public InMemoryPublisher(ChannelWriter<TM> writer)
         {
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
@@ -20,7 +20,7 @@ namespace Highway.Persistence.InMemory
 
         public async Task PublishAsync(TM message, CancellationToken cancellationToken = default)
         {
-            if (message == null) 
+            if (message == null)
                 throw new ArgumentNullException(nameof(message));
 
             await _writer.WriteAsync(message, cancellationToken)

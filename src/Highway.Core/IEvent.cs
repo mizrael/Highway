@@ -1,4 +1,5 @@
 ﻿namespace Highway.Core
 {
-    public interface IEvent : IMessage { }
+    //TODO: allow broadcasting to multiple consumers
+    public interface IEvent : IMessage { } 
 }

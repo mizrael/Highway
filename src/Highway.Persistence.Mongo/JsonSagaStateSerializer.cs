@@ -1,8 +1,8 @@
+using Highway.Core;
+using Newtonsoft.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Highway.Core;
-using Newtonsoft.Json;
 
 namespace Highway.Persistence.Mongo
 {
@@ -15,7 +15,7 @@ namespace Highway.Persistence.Mongo
         {
             TypeNameHandling = TypeNameHandling.All
         };
-        
+
         public async Task<byte[]> SerializeAsync<TD>(TD state, CancellationToken cancellationToken = default) where TD : SagaState
         {
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(state, Settings);

@@ -1,7 +1,7 @@
+using Highway.Core.Persistence;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Highway.Core.Persistence;
 
 namespace Highway.Persistence.InMemory
 {
@@ -13,7 +13,7 @@ namespace Highway.Persistence.InMemory
         }
 
         public ISagaStateRepository SagaStatesRepository { get; }
-        
+
         public async Task<ITransaction> StartTransactionAsync(CancellationToken cancellationToken = default) => new InMemoryTransaction();
     }
 }

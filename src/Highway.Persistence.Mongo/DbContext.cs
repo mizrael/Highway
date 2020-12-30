@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using System;
+using Highway.Persistence.Mongo.Entities;
 
 namespace Highway.Persistence.Mongo
 {
@@ -18,6 +19,18 @@ namespace Highway.Persistence.Mongo
             _db = db ?? throw new ArgumentNullException(nameof(db));
 
             SagaStates = _db.GetCollection<Entities.SagaState>("sagaStates");
+
+            var indexBuilder = Builders<Entities.SagaState>.IndexKeys;
+            var indexKeys = indexBuilder.Combine(
+                indexBuilder.Ascending(e => e.CorrelationId),
+                indexBuilder.Ascending(e => e.Type)
+            );
+            var index = new CreateIndexModel<SagaState>(indexKeys, new CreateIndexOptions()
+            {
+                Unique = true,
+                Name = "ix_correlation_type"
+            });
+            SagaStates.Indexes.CreateOne(index);
         }
 
         static DbContext()
@@ -28,17 +41,17 @@ namespace Highway.Persistence.Mongo
                 BsonClassMap.RegisterClassMap<Entities.SagaState>(mapper =>
                 {
                     mapper.AutoMap();
-                    
-                    mapper.MapIdField(c => c.Id).SetSerializer(guidSerializer);
+
+                    mapper.MapProperty(c => c.CorrelationId).SetSerializer(guidSerializer);
+                    mapper.MapProperty(c => c.Type); 
                     mapper.MapProperty(c => c.Data);
-                    mapper.MapProperty(c => c.Type);
                     mapper.MapProperty(c => c.LockId).SetSerializer(nullableGuidSerializer)
                                                      .SetDefaultValue(() => null);
                     mapper.MapProperty(c => c.LockTime).SetDefaultValue(() => null);
-                    mapper.MapCreator(s => new Entities.SagaState(s.Id, s.Data, s.Type, s.LockId, s.LockTime));
+                    mapper.MapCreator(s => new Entities.SagaState(s._id, s.CorrelationId, s.Type, s.Data, s.LockId, s.LockTime));
                 });
         }
-     
+
         public IMongoCollection<Entities.SagaState> SagaStates { get; }
     }
 }

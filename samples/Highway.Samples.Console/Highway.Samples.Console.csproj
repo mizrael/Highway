@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\src\Highway.Core\Highway.Core.csproj" />
     <ProjectReference Include="..\..\src\Highway.Persistence.InMemory\Highway.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Highway.Persistence.Mongo\Highway.Persistence.Mongo.csproj" />
+    <ProjectReference Include="..\..\src\Highway.Transport.RabbitMQ\Highway.Transport.RabbitMQ.csproj" />
   </ItemGroup>
 
   <ItemGroup>

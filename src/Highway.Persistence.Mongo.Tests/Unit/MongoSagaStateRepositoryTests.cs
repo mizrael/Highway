@@ -1,11 +1,12 @@
-﻿using System;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Highway.Core.Exceptions;
 using MongoDB.Driver;
 using NSubstitute;
+using System;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Bson;
 using Xunit;
 
 namespace Highway.Persistence.Mongo.Tests.Unit
@@ -20,25 +21,25 @@ namespace Highway.Persistence.Mongo.Tests.Unit
             var jsonState = Newtonsoft.Json.JsonConvert.SerializeObject(newState);
             var stateData = Encoding.UTF8.GetBytes(jsonState);
 
-            var entity = new Entities.SagaState(newState.Id, stateData, typeof(DummyState).FullName, Guid.NewGuid(), DateTime.UtcNow);
-            
+            var entity = new Entities.SagaState(ObjectId.GenerateNewId(), newState.Id, typeof(DummyState).FullName, stateData, Guid.NewGuid(), DateTime.UtcNow);
+
             var coll = NSubstitute.Substitute.For<IMongoCollection<Entities.SagaState>>();
             coll.FindOneAndUpdateAsync(Arg.Any<FilterDefinition<Entities.SagaState>>(),
-                    Arg.Any<UpdateDefinition<Entities.SagaState>>(), 
-                    Arg.Any<FindOneAndUpdateOptions<Entities.SagaState>>(), 
+                    Arg.Any<UpdateDefinition<Entities.SagaState>>(),
+                    Arg.Any<FindOneAndUpdateOptions<Entities.SagaState>>(),
                     Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(entity);
-            
+
             var dbContext = NSubstitute.Substitute.For<IDbContext>();
             dbContext.SagaStates.Returns(coll);
-            
+
             var serializer = NSubstitute.Substitute.For<ISagaStateSerializer>();
             serializer.DeserializeAsync<DummyState>(stateData)
                 .Returns(newState);
-            
+
             var options = new MongoSagaStateRepositoryOptions(TimeSpan.FromMinutes(1));
             var sut = new MongoSagaStateRepository(dbContext, serializer, options);
-            
+
             var (state, lockId) = await sut.LockAsync(newState.Id, newState, CancellationToken.None);
             state.Should().NotBeNull();
             state.Id.Should().Be(newState.Id);
@@ -50,7 +51,7 @@ namespace Highway.Persistence.Mongo.Tests.Unit
         public async Task UpdateAsync_should_throw_when_update_fails()
         {
             var newState = DummyState.New();
-            
+
             var coll = NSubstitute.Substitute.For<IMongoCollection<Entities.SagaState>>();
             coll.UpdateOneAsync(Arg.Any<FilterDefinition<Entities.SagaState>>(),
                     Arg.Any<UpdateDefinition<Entities.SagaState>>(),

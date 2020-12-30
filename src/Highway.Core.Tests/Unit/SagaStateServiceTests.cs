@@ -1,11 +1,11 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Highway.Core.DependencyInjection;
 using Highway.Core.Exceptions;
 using Highway.Core.Persistence;
 using NSubstitute;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Highway.Core.Tests
@@ -19,11 +19,11 @@ namespace Highway.Core.Tests
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
             uow.SagaStatesRepository.Returns(sagaStateRepo);
-            var publisher = NSubstitute.Substitute.For<IMessageBus>();
+            var bus = NSubstitute.Substitute.For<IMessageBus>();
 
-            var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, publisher);
+            var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
 
-            var message = new StartDummySaga(Guid.NewGuid());
+            var message = StartDummySaga.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 
@@ -39,11 +39,11 @@ namespace Highway.Core.Tests
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
             uow.SagaStatesRepository.Returns(sagaStateRepo);
-            var publisher = NSubstitute.Substitute.For<IMessageBus>();
+            var bus = NSubstitute.Substitute.For<IMessageBus>();
 
-            var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, publisher);
+            var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
 
-            var message = new DummySagaStarted(Guid.NewGuid());
+            var message = DummySagaStarted.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<DummySagaStarted>>();
             messageContext.Message.Returns(message);
 
@@ -57,7 +57,7 @@ namespace Highway.Core.Tests
         {
             var expectedState = new DummySagaState(Guid.NewGuid());
 
-            var message = new StartDummySaga(Guid.NewGuid());
+            var message = StartDummySaga.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 
@@ -66,19 +66,64 @@ namespace Highway.Core.Tests
                 .Returns(expectedState);
 
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
-            sagaStateRepo.LockAsync(message.GetCorrelationId(), expectedState,  Arg.Any<CancellationToken>())
+            sagaStateRepo.LockAsync(message.CorrelationId, expectedState, Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult((expectedState, Guid.NewGuid())));
-            
+
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
             uow.SagaStatesRepository.Returns(sagaStateRepo);
-            
-            var publisher = NSubstitute.Substitute.For<IMessageBus>();
 
-            var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, publisher);
+            var bus = NSubstitute.Substitute.For<IMessageBus>();
+
+            var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
 
             var result = await sut.GetAsync(messageContext, CancellationToken.None);
             result.state.Should().Be(expectedState);
         }
 
+        [Fact]
+        public async Task SaveAsync_should_unlock_state()
+        {
+            var sagaStateFactory = NSubstitute.Substitute.For<ISagaStateFactory<DummySagaState>>();
+
+            var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
+            var uow = NSubstitute.Substitute.For<IUnitOfWork>();
+            uow.SagaStatesRepository.Returns(sagaStateRepo);
+
+            var bus = NSubstitute.Substitute.For<IMessageBus>();
+
+            var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
+
+            var state = new DummySagaState(Guid.NewGuid());
+            var lockId = Guid.NewGuid();
+
+            await sut.SaveAsync(state, lockId, CancellationToken.None);
+
+            await sagaStateRepo.Received(1)
+                .UpdateAsync(state, lockId, true, CancellationToken.None);
+        }
+
+        [Fact]
+        public async Task SaveAsync_should_process_outbox()
+        {
+            var sagaStateFactory = NSubstitute.Substitute.For<ISagaStateFactory<DummySagaState>>();
+
+            var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
+            var uow = NSubstitute.Substitute.For<IUnitOfWork>();
+            uow.SagaStatesRepository.Returns(sagaStateRepo);
+
+            var bus = NSubstitute.Substitute.For<IMessageBus>();
+
+            var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
+
+            var state = new DummySagaState(Guid.NewGuid());
+            var msg = StartDummySaga.New();
+            state.EnqueueMessage(msg);
+            var lockId = Guid.NewGuid();
+
+            await sut.SaveAsync(state, lockId, CancellationToken.None);
+
+            await bus.Received(1)
+                .PublishAsync(msg, CancellationToken.None);
+        }
     }
 }
