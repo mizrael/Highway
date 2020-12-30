@@ -16,7 +16,7 @@ namespace Highway.Core.Tests.Unit
             var state = new DummySagaState(Guid.NewGuid());
             state.Outbox.Should().BeEmpty();
 
-            var msg = new StartDummySaga(Guid.NewGuid());
+            var msg = StartDummySaga.New();
             state.EnqueueMessage(msg);
             state.Outbox.Should().HaveCount(1)
                 .And.Contain(m => m.Id == msg.Id);
@@ -28,7 +28,7 @@ namespace Highway.Core.Tests.Unit
             var state = new DummySagaState(Guid.NewGuid());
             state.Outbox.Should().BeEmpty();
 
-            var msg = new StartDummySaga(Guid.NewGuid());
+            var msg = StartDummySaga.New();
             state.EnqueueMessage(msg);
 
             var ex = Assert.Throws<ArgumentException>(() => state.EnqueueMessage(msg));
@@ -41,7 +41,7 @@ namespace Highway.Core.Tests.Unit
             var state = new DummySagaState(Guid.NewGuid());
 
             var messages = Enumerable.Repeat(1, 5)
-                .Select(i => new StartDummySaga(Guid.NewGuid()))
+                .Select(i => StartDummySaga.New())
                 .ToArray();
             foreach (var msg in messages)
                 state.EnqueueMessage(msg);
@@ -63,7 +63,7 @@ namespace Highway.Core.Tests.Unit
             var state = new DummySagaState(Guid.NewGuid());
 
             var messages = Enumerable.Repeat(1, 3)
-                .Select(i => new StartDummySaga(Guid.NewGuid()))
+                .Select(i => StartDummySaga.New())
                 .ToArray();
             foreach (var msg in messages)
                 state.EnqueueMessage(msg);
@@ -71,7 +71,7 @@ namespace Highway.Core.Tests.Unit
             var bus = NSubstitute.Substitute.For<IMessageBus>();
 
             var failedMessage = Enumerable.Repeat(1, 5)
-                .Select(i => new StartDummySaga(Guid.NewGuid()))
+                .Select(i => StartDummySaga.New())
                 .ToArray();
             foreach (var msg in failedMessage)
             {

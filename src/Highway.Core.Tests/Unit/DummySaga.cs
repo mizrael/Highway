@@ -11,14 +11,14 @@ namespace Highway.Core.Tests
         }
     }
 
-    public record StartDummySaga(Guid Id) : ICommand
+    public record StartDummySaga(Guid Id, Guid CorrelationId) : ICommand
     {
-        public Guid CorrelationId => this.Id;
+        public static StartDummySaga New() => new StartDummySaga(Guid.NewGuid(), Guid.NewGuid());
     }
 
-    public record DummySagaStarted(Guid Id) : IEvent
+    public record DummySagaStarted(Guid Id, Guid CorrelationId) : ICommand
     {
-        public Guid CorrelationId => this.Id;
+        public static DummySagaStarted New() => new DummySagaStarted(Guid.NewGuid(), Guid.NewGuid());
     }
 
     public class DummySaga :
@@ -28,7 +28,7 @@ namespace Highway.Core.Tests
     {
         public virtual async Task HandleAsync(IMessageContext<StartDummySaga> context, CancellationToken cancellationToken = default)
         {
-            var started = new DummySagaStarted(context.Message.Id);
+            var started = new DummySagaStarted(Guid.NewGuid(), context.Message.CorrelationId);
             this.Publish(started);
         }
 

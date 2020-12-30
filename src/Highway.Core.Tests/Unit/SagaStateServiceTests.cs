@@ -23,7 +23,7 @@ namespace Highway.Core.Tests
 
             var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
 
-            var message = new StartDummySaga(Guid.NewGuid());
+            var message = StartDummySaga.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 
@@ -43,7 +43,7 @@ namespace Highway.Core.Tests
 
             var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
 
-            var message = new DummySagaStarted(Guid.NewGuid());
+            var message = DummySagaStarted.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<DummySagaStarted>>();
             messageContext.Message.Returns(message);
 
@@ -57,7 +57,7 @@ namespace Highway.Core.Tests
         {
             var expectedState = new DummySagaState(Guid.NewGuid());
 
-            var message = new StartDummySaga(Guid.NewGuid());
+            var message = StartDummySaga.New();
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
 
@@ -116,7 +116,7 @@ namespace Highway.Core.Tests
             var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
 
             var state = new DummySagaState(Guid.NewGuid());
-            var msg = new StartDummySaga(Guid.NewGuid());
+            var msg = StartDummySaga.New();
             state.EnqueueMessage(msg);
             var lockId = Guid.NewGuid();
 
