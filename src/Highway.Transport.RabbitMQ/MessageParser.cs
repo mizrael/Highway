@@ -6,12 +6,12 @@ using System.Text;
 
 namespace Highway.Transport.RabbitMQ
 {
-    public class MessageResolver : IMessageResolver
+    public class MessageParser : IMessageParser
     {
         private readonly IDecoder _decoder;
         private readonly IEnumerable<System.Reflection.Assembly> _assemblies;
 
-        public MessageResolver(IDecoder encoder, IEnumerable<System.Reflection.Assembly> assemblies)
+        public MessageParser(IDecoder encoder, IEnumerable<System.Reflection.Assembly> assemblies)
         {
             _decoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _assemblies = assemblies ?? throw new ArgumentNullException(nameof(encoder));

@@ -4,7 +4,7 @@ using System;
 
 namespace Highway.Transport.RabbitMQ
 {
-    public interface IMessageResolver
+    public interface IMessageParser
     {
         TM Resolve<TM>(IBasicProperties basicProperties, ReadOnlyMemory<byte> body) where TM : IMessage;
     }

@@ -14,14 +14,14 @@ namespace Highway.Transport.RabbitMQ
     {
         private readonly IBusConnection _connection;
         private readonly QueueReferences _queueReferences;
-        private readonly IMessageResolver _messageResolver;
+        private readonly IMessageParser _messageParser;
         private readonly IMessageProcessor _messageProcessor;
         private readonly ILogger<RabbitSubscriber<TM>> _logger;
         private IModel _channel;
 
         public RabbitSubscriber(IBusConnection connection,
             IQueueReferenceFactory queueReferenceFactory,
-            IMessageResolver messageResolver,
+            IMessageParser messageParser,
             IMessageProcessor messageProcessor,
             ILogger<RabbitSubscriber<TM>> logger)
         {
@@ -29,7 +29,7 @@ namespace Highway.Transport.RabbitMQ
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _messageProcessor = messageProcessor ?? throw new ArgumentNullException(nameof(messageProcessor));
-            _messageResolver = messageResolver ?? throw new ArgumentNullException(nameof(messageResolver));
+            _messageParser = messageParser ?? throw new ArgumentNullException(nameof(messageParser));
             _queueReferences = queueReferenceFactory.Create<TM>();
         }
 
@@ -101,7 +101,7 @@ namespace Highway.Transport.RabbitMQ
             TM message;
             try
             {
-                message = _messageResolver.Resolve<TM>(eventArgs.BasicProperties, eventArgs.Body);
+                message = _messageParser.Resolve<TM>(eventArgs.BasicProperties, eventArgs.Body);
             }
             catch (Exception ex)
             {

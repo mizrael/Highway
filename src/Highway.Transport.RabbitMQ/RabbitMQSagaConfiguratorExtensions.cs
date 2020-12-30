@@ -40,14 +40,14 @@ namespace Highway.Persistence.InMemory
             }
 
             //TODO: this won't work when multiple sagas are registered
-            sagaConfigurator.Services.AddSingleton<IMessageResolver>(ctx =>
+            sagaConfigurator.Services.AddSingleton<IMessageParser>(ctx =>
             {
                 var decoder = ctx.GetRequiredService<IDecoder>();
                 var assemblies = new[]
                 {
                     typeof(TS).Assembly
                 };
-                return new MessageResolver(decoder, assemblies);
+                return new MessageParser(decoder, assemblies);
             });
 
             if (!_initialized)
