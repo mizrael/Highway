@@ -1,6 +1,6 @@
 namespace Highway.Core
 {
-    public interface ISagaFactory<TS,TD>
+    public interface ISagaFactory<TS, TD>
         where TD : SagaState
         where TS : Saga<TD>
     {

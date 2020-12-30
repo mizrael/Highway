@@ -28,7 +28,7 @@ namespace Highway.Persistence.Mongo
                 BsonClassMap.RegisterClassMap<Entities.SagaState>(mapper =>
                 {
                     mapper.AutoMap();
-                    
+
                     mapper.MapIdField(c => c.Id).SetSerializer(guidSerializer);
                     mapper.MapProperty(c => c.Data);
                     mapper.MapProperty(c => c.Type);
@@ -38,7 +38,7 @@ namespace Highway.Persistence.Mongo
                     mapper.MapCreator(s => new Entities.SagaState(s.Id, s.Data, s.Type, s.LockId, s.LockTime));
                 });
         }
-     
+
         public IMongoCollection<Entities.SagaState> SagaStates { get; }
     }
 }

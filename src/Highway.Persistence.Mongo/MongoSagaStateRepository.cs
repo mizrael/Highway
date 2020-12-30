@@ -1,17 +1,18 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Highway.Core;
 using Highway.Core.Exceptions;
 using Highway.Core.Persistence;
 using MongoDB.Driver;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Highway.Persistence.Mongo
 {
-    public record MongoSagaStateRepositoryOptions(TimeSpan LockMaxDuration){
+    public record MongoSagaStateRepositoryOptions(TimeSpan LockMaxDuration)
+    {
         public static readonly MongoSagaStateRepositoryOptions Default = new MongoSagaStateRepositoryOptions(TimeSpan.FromMinutes(1));
     }
-    
+
     public class MongoSagaStateRepository : ISagaStateRepository
     {
         private readonly IDbContext _dbContext;
@@ -45,7 +46,7 @@ namespace Highway.Persistence.Mongo
             {
                 var serializedState = await _sagaStateSerializer.SerializeAsync(newEntity, cancellationToken);
                 var stateType = typeof(TD);
-                
+
                 update = update.SetOnInsert(e => e.Id, id)
                     .SetOnInsert(e => e.Type, stateType.FullName)
                     .SetOnInsert(e => e.Data, serializedState);
@@ -74,11 +75,11 @@ namespace Highway.Persistence.Mongo
                 throw new LockException($"saga state '{id}' is already locked");
             }
         }
-     
+
         public async Task UpdateAsync<TD>(TD state, Guid lockId, bool releaseLock = false, CancellationToken cancellationToken = default)
             where TD : SagaState
         {
-            if (state == null) 
+            if (state == null)
                 throw new ArgumentNullException(nameof(state));
 
             var serializedState = await _sagaStateSerializer.SerializeAsync(state, cancellationToken);
@@ -88,7 +89,7 @@ namespace Highway.Persistence.Mongo
                 Builders<Entities.SagaState>.Filter.Eq(e => e.Id, state.Id),
                 Builders<Entities.SagaState>.Filter.Eq(e => e.LockId, lockId)
             );
-            
+
             var update = Builders<Entities.SagaState>.Update
                   .Set(e => e.Data, serializedState)
                   .Set(s => s.Type, stateType.FullName);
@@ -96,7 +97,8 @@ namespace Highway.Persistence.Mongo
                 update = update.Set(e => e.LockId, null)
                                 .Set(e => e.LockTime, null);
 
-            var options = new UpdateOptions(){
+            var options = new UpdateOptions()
+            {
                 IsUpsert = true
             };
 

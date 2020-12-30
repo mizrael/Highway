@@ -1,11 +1,11 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Highway.Core.DependencyInjection;
 using Highway.Core.Exceptions;
 using Highway.Core.Persistence;
 using NSubstitute;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Highway.Core.Tests
@@ -66,12 +66,12 @@ namespace Highway.Core.Tests
                 .Returns(expectedState);
 
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
-            sagaStateRepo.LockAsync(message.CorrelationId, expectedState,  Arg.Any<CancellationToken>())
+            sagaStateRepo.LockAsync(message.CorrelationId, expectedState, Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult((expectedState, Guid.NewGuid())));
-            
+
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
             uow.SagaStatesRepository.Returns(sagaStateRepo);
-            
+
             var bus = NSubstitute.Substitute.For<IMessageBus>();
 
             var sut = new SagaStateService<DummySaga, DummySagaState>(sagaStateFactory, uow, bus);
@@ -81,9 +81,10 @@ namespace Highway.Core.Tests
         }
 
         [Fact]
-        public async Task SaveAsync_should_unlock_state(){
+        public async Task SaveAsync_should_unlock_state()
+        {
             var sagaStateFactory = NSubstitute.Substitute.For<ISagaStateFactory<DummySagaState>>();
-            
+
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
             uow.SagaStatesRepository.Returns(sagaStateRepo);
@@ -102,9 +103,10 @@ namespace Highway.Core.Tests
         }
 
         [Fact]
-        public async Task SaveAsync_should_process_outbox(){
+        public async Task SaveAsync_should_process_outbox()
+        {
             var sagaStateFactory = NSubstitute.Substitute.For<ISagaStateFactory<DummySagaState>>();
-            
+
             var sagaStateRepo = NSubstitute.Substitute.For<ISagaStateRepository>();
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
             uow.SagaStatesRepository.Returns(sagaStateRepo);

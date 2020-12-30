@@ -1,8 +1,8 @@
-﻿using System;
+﻿using FluentAssertions;
+using Highway.Core.Exceptions;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Highway.Core.Exceptions;
 using Xunit;
 
 namespace Highway.Persistence.InMemory.Tests.Unit
@@ -28,7 +28,7 @@ namespace Highway.Persistence.InMemory.Tests.Unit
             var sut = new InMemorySagaStateRepository();
 
             var newState = DummyState.New();
-            
+
             var (lockedState, lockId) = await sut.LockAsync(newState.Id, newState, CancellationToken.None);
             lockedState.Should().NotBeNull();
 
@@ -54,8 +54,8 @@ namespace Highway.Persistence.InMemory.Tests.Unit
             var sut = new InMemorySagaStateRepository();
 
             var newState = DummyState.New();
-            
-            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async() =>await sut.UpdateAsync(newState, Guid.NewGuid(), true, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await sut.UpdateAsync(newState, Guid.NewGuid(), true, CancellationToken.None));
         }
 
         [Fact]

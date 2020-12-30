@@ -1,6 +1,6 @@
-﻿using System;
-using Highway.Core;
+﻿using Highway.Core;
 using RabbitMQ.Client;
+using System;
 
 namespace Highway.Transport.RabbitMQ
 {

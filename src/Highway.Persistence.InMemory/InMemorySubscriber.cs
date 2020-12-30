@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Highway.Core;
+using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Highway.Core;
 
 namespace Highway.Persistence.InMemory
 {
@@ -11,7 +11,7 @@ namespace Highway.Persistence.InMemory
     {
         private readonly IMessageProcessor _messageProcessor;
         private readonly ChannelReader<TM> _reader;
-        
+
         public InMemorySubscriber(IMessageProcessor messageProcessor, ChannelReader<TM> reader)
         {
             _messageProcessor = messageProcessor ?? throw new ArgumentNullException(nameof(messageProcessor));
@@ -30,6 +30,6 @@ namespace Highway.Persistence.InMemory
         {
             return Task.CompletedTask;
         }
-        
+
     }
 }

@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace Highway.Core
 {
-    public interface ISagaStateService<TS, TD> 
-        where TS : Saga<TD> 
+    public interface ISagaStateService<TS, TD>
+        where TS : Saga<TD>
         where TD : SagaState
     {
         Task<(TD state, Guid lockId)> GetAsync<TM>(IMessageContext<TM> messageContext,

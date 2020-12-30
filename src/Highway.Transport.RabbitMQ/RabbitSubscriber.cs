@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Highway.Core;
+﻿using Highway.Core;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Highway.Transport.RabbitMQ
 {
@@ -36,7 +36,7 @@ namespace Highway.Transport.RabbitMQ
         private void InitChannel()
         {
             StopChannel();
-                
+
             _channel = _connection.CreateChannel();
 
             _channel.ExchangeDeclare(exchange: _queueReferences.DeadLetterExchangeName, type: ExchangeType.Fanout);
@@ -46,7 +46,7 @@ namespace Highway.Transport.RabbitMQ
                 autoDelete: false,
                 arguments: null);
             _channel.QueueBind(_queueReferences.DeadLetterQueue, _queueReferences.DeadLetterExchangeName, routingKey: string.Empty, arguments: null);
-      
+
             _channel.ExchangeDeclare(exchange: _queueReferences.ExchangeName, type: ExchangeType.Fanout);
             _channel.QueueDeclare(queue: _queueReferences.QueueName,
                 durable: false,
@@ -75,7 +75,7 @@ namespace Highway.Transport.RabbitMQ
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
             consumer.Received += OnMessageReceivedAsync;
-            
+
             _channel.BasicConsume(queue: _queueReferences.QueueName, autoAck: false, consumer: consumer);
         }
 
@@ -92,7 +92,7 @@ namespace Highway.Transport.RabbitMQ
             _channel.Dispose();
             _channel = null;
         }
-        
+
         private async Task OnMessageReceivedAsync(object sender, BasicDeliverEventArgs eventArgs)
         {
             var consumer = sender as IBasicConsumer;
@@ -110,14 +110,14 @@ namespace Highway.Transport.RabbitMQ
                 channel.BasicReject(eventArgs.DeliveryTag, requeue: false);
                 return;
             }
-            
+
             _logger.LogDebug("received message '{MessageId}' from Exchange '{ExchangeName}'. Processing...", message.Id, _queueReferences.ExchangeName);
 
             try
             {
                 //TODO: provide valid cancellation token
                 await _messageProcessor.ProcessAsync(message, CancellationToken.None);
-                
+
                 channel.BasicAck(eventArgs.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
@@ -133,7 +133,7 @@ namespace Highway.Transport.RabbitMQ
                     channel.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: true);
             }
         }
-        
+
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             InitChannel();

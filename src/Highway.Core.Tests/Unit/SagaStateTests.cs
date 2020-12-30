@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using FluentAssertions;
+using NSubstitute;
+using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using NSubstitute;
 using Xunit;
 
 namespace Highway.Core.Tests.Unit
@@ -17,7 +15,7 @@ namespace Highway.Core.Tests.Unit
         {
             var state = new DummySagaState(Guid.NewGuid());
             state.Outbox.Should().BeEmpty();
-            
+
             var msg = new StartDummySaga(Guid.NewGuid());
             state.EnqueueMessage(msg);
             state.Outbox.Should().HaveCount(1)
@@ -41,11 +39,11 @@ namespace Highway.Core.Tests.Unit
         public async Task ProcessOutbox_should_publish_all_messaged()
         {
             var state = new DummySagaState(Guid.NewGuid());
-            
+
             var messages = Enumerable.Repeat(1, 5)
                 .Select(i => new StartDummySaga(Guid.NewGuid()))
                 .ToArray();
-            foreach(var msg in messages)
+            foreach (var msg in messages)
                 state.EnqueueMessage(msg);
 
             var bus = NSubstitute.Substitute.For<IMessageBus>();
@@ -63,7 +61,7 @@ namespace Highway.Core.Tests.Unit
         public async Task ProcessOutbox_should_reenqueue_failed_messages()
         {
             var state = new DummySagaState(Guid.NewGuid());
-            
+
             var messages = Enumerable.Repeat(1, 3)
                 .Select(i => new StartDummySaga(Guid.NewGuid()))
                 .ToArray();
@@ -71,7 +69,7 @@ namespace Highway.Core.Tests.Unit
                 state.EnqueueMessage(msg);
 
             var bus = NSubstitute.Substitute.For<IMessageBus>();
-            
+
             var failedMessage = Enumerable.Repeat(1, 5)
                 .Select(i => new StartDummySaga(Guid.NewGuid()))
                 .ToArray();

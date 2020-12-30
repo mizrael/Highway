@@ -1,5 +1,5 @@
-﻿using System;
-using Highway.Core;
+﻿using Highway.Core;
+using System;
 
 namespace Highway.Persistence.Mongo.Tests
 {
@@ -10,7 +10,7 @@ namespace Highway.Persistence.Mongo.Tests
             Foo = foo;
             Bar = bar;
         }
-        
+
         public string Foo { get; }
         public int Bar { get; }
 

@@ -1,7 +1,7 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Polly;
 using RabbitMQ.Client;
+using System;
 
 namespace Highway.Transport.RabbitMQ
 {

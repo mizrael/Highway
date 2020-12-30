@@ -1,23 +1,19 @@
-using System;
-using System.Linq;
-using System.Threading.Channels;
 using Highway.Core;
 using Highway.Core.DependencyInjection;
-using Highway.Core.Persistence;
 using Highway.Transport.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using System.Linq;
 
 namespace Highway.Persistence.InMemory
 {
     public record RabbitConfiguration(string HostName, string UserName, string Password);
-    
+
     public static class RabbitMQSagaConfiguratorExtensions
     {
         private static bool _initialized = false;
-        
-        public static ISagaConfigurator<TS, TD> UseRabbitMQTransport<TS, TD>(this ISagaConfigurator<TS, TD> sagaConfigurator, 
+
+        public static ISagaConfigurator<TS, TD> UseRabbitMQTransport<TS, TD>(this ISagaConfigurator<TS, TD> sagaConfigurator,
             RabbitConfiguration config)
             where TS : Saga<TD>
             where TD : SagaState
@@ -36,7 +32,7 @@ namespace Highway.Persistence.InMemory
 
                 var messageType = i.GetGenericArguments().First();
 
-                sagaConfigurator.Services.AddSingleton(typeof(IPublisher<>).MakeGenericType(messageType), 
+                sagaConfigurator.Services.AddSingleton(typeof(IPublisher<>).MakeGenericType(messageType),
                                                     typeof(RabbitPublisher<>).MakeGenericType(messageType));
 
                 sagaConfigurator.Services.AddSingleton(typeof(ISubscriber<>).MakeGenericType(messageType),
@@ -59,7 +55,7 @@ namespace Highway.Persistence.InMemory
                 var encoder = new JsonEncoder();
                 sagaConfigurator.Services.AddSingleton<IEncoder>(encoder);
                 sagaConfigurator.Services.AddSingleton<IDecoder>(encoder);
-                
+
                 sagaConfigurator.Services.AddSingleton<IQueueReferenceFactory, QueueReferenceFactory>();
 
                 sagaConfigurator.Services.AddSingleton<IConnectionFactory>(ctx =>
@@ -76,7 +72,7 @@ namespace Highway.Persistence.InMemory
                 });
 
                 sagaConfigurator.Services.AddSingleton<IBusConnection, RabbitPersistentConnection>();
-                
+
                 _initialized = true;
             }
 

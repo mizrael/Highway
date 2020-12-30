@@ -1,8 +1,8 @@
+using Highway.Core.Exceptions;
+using Highway.Core.Persistence;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Highway.Core.Exceptions;
-using Highway.Core.Persistence;
 
 namespace Highway.Core
 {
@@ -13,9 +13,9 @@ namespace Highway.Core
         private readonly ISagaStateService<TS, TD> _sagaStateService;
         private readonly ISagaFactory<TS, TD> _sagaFactory;
         private readonly IUnitOfWork _unitOfWork;
-        
+
         public SagaRunner(ISagaFactory<TS, TD> sagaFactory,
-                          ISagaStateService<TS, TD> sagaStateService, 
+                          ISagaStateService<TS, TD> sagaStateService,
                           IUnitOfWork unitOfWork)
         {
             _sagaFactory = sagaFactory ?? throw new ArgumentNullException(nameof(sagaFactory));
@@ -27,7 +27,7 @@ namespace Highway.Core
             where TM : IMessage
         {
             // TODO: if a saga instance has to wait to enter the lock, check if the message was processed already
-            
+
             var done = false;
             var random = new Random();
             TD state = null;
@@ -46,7 +46,7 @@ namespace Highway.Core
                     await Task.Delay(TimeSpan.FromMilliseconds(random.Next(1, 10)), cancellationToken).ConfigureAwait(false);
                 }
             }
-            
+
             var saga = _sagaFactory.Create(state);
             if (null == saga)
                 throw new SagaNotFoundException($"unable to create Saga of type '{typeof(TS).FullName}'");

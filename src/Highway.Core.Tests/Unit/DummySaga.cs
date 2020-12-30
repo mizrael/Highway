@@ -21,7 +21,7 @@ namespace Highway.Core.Tests
         public Guid CorrelationId => this.Id;
     }
 
-    public class DummySaga : 
+    public class DummySaga :
         Saga<DummySagaState>,
         IStartedBy<StartDummySaga>,
         IHandleMessage<DummySagaStarted>
@@ -31,7 +31,7 @@ namespace Highway.Core.Tests
             var started = new DummySagaStarted(context.Message.Id);
             this.Publish(started);
         }
-        
+
         public virtual Task HandleAsync(IMessageContext<DummySagaStarted> context, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();

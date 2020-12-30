@@ -1,5 +1,5 @@
-﻿using System;
-using Highway.Core;
+﻿using Highway.Core;
+using System;
 
 namespace Highway.Persistence.InMemory.Tests.Unit
 {
@@ -10,10 +10,10 @@ namespace Highway.Persistence.InMemory.Tests.Unit
             Foo = foo;
             Bar = bar;
         }
-        
+
         public string Foo { get; }
         public int Bar { get; }
-        
+
         public static DummyState New() => new DummyState(Guid.NewGuid(), "lorem ipsum", 42);
     }
 }

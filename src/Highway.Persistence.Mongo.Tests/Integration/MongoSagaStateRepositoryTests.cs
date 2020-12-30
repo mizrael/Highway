@@ -1,9 +1,9 @@
-﻿using System;
+﻿using FluentAssertions;
+using Highway.Persistence.Mongo.Tests.Unit;
+using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Highway.Persistence.Mongo.Tests.Unit;
 using Xunit;
 
 namespace Highway.Persistence.Mongo.Tests.Integration
@@ -31,14 +31,14 @@ namespace Highway.Persistence.Mongo.Tests.Integration
             newState.EnqueueMessage(DummyMessage.New());
             newState.EnqueueMessage(DummyMessage.New());
             newState.EnqueueMessage(DummyMessage.New());
-            
+
             var (state, lockId) = await sut.LockAsync(newState.Id, newState, CancellationToken.None);
             state.Should().NotBeNull();
             state.Id.Should().Be(newState.Id);
             state.Bar.Should().Be(newState.Bar);
             state.Foo.Should().Be(newState.Foo);
             state.Outbox.Should().HaveCount(3);
-            
+
         }
     }
 }

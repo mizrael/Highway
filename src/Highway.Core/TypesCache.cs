@@ -14,9 +14,9 @@ namespace Highway.Core
         {
             var sb = new StringBuilder();
             sb.Append(baseType.FullName);
-            foreach(var t in args)
+            foreach (var t in args)
                 sb.Append(t.FullName);
-          
+
             var key = sb.ToString();
 
             return _types.GetOrAdd(key, k => baseType.MakeGenericType(args));
@@ -26,7 +26,7 @@ namespace Highway.Core
         {
             var sb = new StringBuilder();
             sb.Append(type.FullName);
-            if(args is not null)
+            if (args is not null)
                 foreach (var t in args)
                     sb.Append(t.FullName);
             var key = sb.ToString();

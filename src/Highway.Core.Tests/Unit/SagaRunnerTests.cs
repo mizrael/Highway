@@ -1,14 +1,14 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Highway.Core.Exceptions;
 using Highway.Core.Persistence;
 using NSubstitute;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Highway.Core.Tests
 {
-    public class SagaRunnerTests 
+    public class SagaRunnerTests
     {
         [Fact]
         public async Task RunAsync_should_retry_if_saga_state_locked()
@@ -16,17 +16,19 @@ namespace Highway.Core.Tests
             var message = new StartDummySaga(Guid.NewGuid());
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
-            
+
             var sagaStateService = NSubstitute.Substitute.For<ISagaStateService<DummySaga, DummySagaState>>();
 
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
-            
+
             var state = new DummySagaState(message.CorrelationId);
 
             var firstCall = true;
-            sagaStateService.When( s=> s.GetAsync(messageContext, Arg.Any<CancellationToken>()))
-            .Do(_ =>{
-                if(firstCall){
+            sagaStateService.When(s => s.GetAsync(messageContext, Arg.Any<CancellationToken>()))
+            .Do(_ =>
+            {
+                if (firstCall)
+                {
                     firstCall = false;
                     throw new LockException("lorem");
                 }
@@ -41,7 +43,7 @@ namespace Highway.Core.Tests
             var sagaFactory = NSubstitute.Substitute.For<ISagaFactory<DummySaga, DummySagaState>>();
             sagaFactory.Create(state)
                 .Returns(saga);
-            
+
             var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateService, uow);
 
             await sut.RunAsync(messageContext, CancellationToken.None);
@@ -58,9 +60,9 @@ namespace Highway.Core.Tests
             var message = new StartDummySaga(Guid.NewGuid());
             var messageContext = NSubstitute.Substitute.For<IMessageContext<StartDummySaga>>();
             messageContext.Message.Returns(message);
-            
+
             var sagaFactory = NSubstitute.Substitute.For<ISagaFactory<DummySaga, DummySagaState>>();
-            
+
             var sagaStateService = NSubstitute.Substitute.For<ISagaStateService<DummySaga, DummySagaState>>();
 
             var uow = NSubstitute.Substitute.For<IUnitOfWork>();
@@ -68,7 +70,7 @@ namespace Highway.Core.Tests
             var state = new DummySagaState(message.CorrelationId);
             sagaStateService.GetAsync(messageContext, Arg.Any<CancellationToken>())
                 .Returns((state, Guid.NewGuid()));
-            
+
             var sut = new SagaRunner<DummySaga, DummySagaState>(sagaFactory, sagaStateService, uow);
 
             await Assert.ThrowsAsync<SagaNotFoundException>(() => sut.RunAsync(messageContext, CancellationToken.None));
